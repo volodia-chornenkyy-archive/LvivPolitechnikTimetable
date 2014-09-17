@@ -1,10 +1,15 @@
 package com.temnoi.lvivpolitechniktimetable;
 
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -12,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -23,6 +29,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.List;
 
 
 public class main extends ActionBarActivity implements ActionBar.OnNavigationListener {
@@ -57,6 +64,13 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                                 getString(R.string.title_section3),
                         }),
                 this);
+    }
+
+    public void DisplayTitle(Cursor c) {
+        Toast.makeText(this, "id: " + c.getString(0) + "\n" +
+                "ISBN: " + c.getString(1) + "\n" +
+                "TITLE: " + c.getString(2) + "\n" +
+                "PUBLISHER: " + c.getString(3), Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -143,19 +157,30 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
         new Timetable().execute();
     }
 
+    public void setDB(View view){
+        DBAdapter dbAdapter = new DBAdapter(this);
 
+        Log.d("Insert: ", "Inserting ..");
+        dbAdapter.addContact(new Lesson("Monday", "1", "Programming", "Programming", "Theory", "Philosophy"));
+        Log.d("Reading: ", "Reading all contacts..");
+        List<Lesson> contacts = dbAdapter.getAllContacts();
+
+        for (Lesson cn : contacts) {
+            String log = "Id: " + cn.getID() + " ,Name: " + cn.getDay() + " ,Phone: " + cn.getGroup1Week1();
+            // Writing Contacts to log
+            Log.d("Name: ", log);
+        }
+
+        Toast.makeText(main.this,"DONE",Toast.LENGTH_SHORT).show();
+    }
 
     /*
-    @String - url adress | change to Integer var for url paramaters
+    Class for working with source of html page with timetable
      */
     class Timetable extends AsyncTask<Void, Integer, String>{
         @Override
-        protected void onPreExecute(){
-            //
-        }
-
-        @Override
         protected String doInBackground(Void... params) {
+            //Get source of html-page from its source code
             HttpClient client = new DefaultHttpClient();
             HttpGet httpGet = new HttpGet(url_politeh);
             try {
@@ -185,12 +210,6 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
         protected void onPostExecute(String par){
             EditText text = (EditText) findViewById(R.id.editText2);
             text.setText(par);
-            /*Button button = (Button) findViewById(R.id.button);
-            if (par) {
-                button.setTextColor(Color.GREEN);
-            } else {
-                button.setTextColor(Color.RED);
-            }*/
         }
     }
 }

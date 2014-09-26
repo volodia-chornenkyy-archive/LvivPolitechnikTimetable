@@ -214,13 +214,18 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                     }
                     if (read_flag) {
                         //Check chyselnuk/pidgrypa
-                        line = deleteTag(line);
+                        //line = deleteTag(line);
                         if (!line.trim().equals("")) {
                             stringBuilder.append(line).append('\n');
                         }
                     }
                 }
                 inputStream.close();
+
+                Lesson lesson = new Lesson();
+                ArrayList<Lesson> timetable = new ArrayList<Lesson>();
+                lesson = getLessons(stringBuilder);
+
                 return stringBuilder.toString();
             } catch (IOException e) {
                 return "ERROR";
@@ -256,6 +261,8 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
         private Lesson getLessons(StringBuilder stringBuilder){
             String[] lines = stringBuilder.toString().split("\\n");
             Lesson lesson = new Lesson();
+            String day = "e";
+            String number = "e";
             Boolean table_start = false;
             Integer line_index = 0;
             String g1w1 = "e";//e - empty
@@ -268,10 +275,32 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
 
             for (String s: lines){
                 line_index++;
+                // Get day
+                if (s.contains("<td align=\"center\" valign=\"middle\" rowspan=\"")) {
+                    day = deleteTag(s).trim();
+                    day = day.substring(0,2);
+                }
+                lesson.setDay(day);
+                // Get lesson number
+                if (s.contains("align=\"center\" valign=\"middle\" class=\"leftcell\">")) {
+                    number = deleteTag(s).trim();
+                    number = number.replaceAll("[^0-9]","");
+                }
+                lesson.setLessonNumber(number);
+                // Get lesson
                 if (s.contains("<table")){
                     table_start = true;
                 } else if (s.contains("</table")){
                     table_start = false;
+                    lesson = formatLesson(lesson,g1w1,g1w2,g2w1,g2w2);
+                    g1w1 = "e";//e - empty
+                    g1w2 = "e";
+                    g2w1 = "e";
+                    g2w2 = "e";
+                    lesson_number = 0;
+                    System.out.println("day: "+lesson.getDay()+"\nnumber: "+lesson.getLessonNumber()
+                            +"\ng1w1: "+lesson.getGroup1Week1()+"\ng1w2: "+lesson.getGroup1Week2()
+                            +"\ng2w1: "+lesson.getGroup2Week1()+"\ng2w2: "+lesson.getGroup2Week2());
                 }
                 if (table_start) {
                     if (s.contains("<td") || s.contains("<div")) {
@@ -328,53 +357,89 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                 }
             }
 
+
+            return null;
+        }
+
+        private Lesson formatLesson(Lesson lesson,String g1w1, String g1w2, String g2w1, String g2w2){
+            //Lesson lesson = new Lesson();
             // Odna para
             if (!g1w1.equals(g1w2)&&g1w2.equals(g2w1)&&g2w1.equals(g2w2)&&g2w2.equals("e")){
                 g1w2 = g2w1 = g2w2 = g1w1;
-                return ;
+                lesson.setGroup1Week1(g1w1);
+                lesson.setGroup1Week2(g1w2);
+                lesson.setGroup2Week1(g2w1);
+                lesson.setGroup2Week2(g2w2);
+                return lesson;
             }
             // Chyselnuk i znamennuk:
             // Chyselnuk
             if (!g1w1.equals(g1w2)&&!g1w2.equals(g2w1)&&g1w2.equals("")&&g2w1.equals(g2w2)&&g2w2.equals("e")){
                 g2w1 = g1w1;
                 g2w2 = g1w2;
-                return;
+                lesson.setGroup1Week1(g1w1);
+                lesson.setGroup1Week2(g1w2);
+                lesson.setGroup2Week1(g2w1);
+                lesson.setGroup2Week2(g2w2);
+                return lesson;
             }
             // Znamennuk
             if (!g1w1.equals(g1w2)&&!g1w2.equals(g2w1)&&g1w1.equals("")&&g2w1.equals(g2w2)&&g2w2.equals("e")){
                 g2w2 = g1w2;
                 g2w1 = g1w1;
-                return;
+                lesson.setGroup1Week1(g1w1);
+                lesson.setGroup1Week2(g1w2);
+                lesson.setGroup2Week1(g2w1);
+                lesson.setGroup2Week2(g2w2);
+                return lesson;
             }
             // Razom
             if (!g1w1.equals(g1w2)&&!g1w1.equals("")&&!g1w2.equals("")&&g2w1.equals(g2w2)&&g2w2.equals("e")){
                 g2w1 = g1w1;
                 g2w2 = g1w2;
-                return;
+                lesson.setGroup1Week1(g1w1);
+                lesson.setGroup1Week2(g1w2);
+                lesson.setGroup2Week1(g2w1);
+                lesson.setGroup2Week2(g2w2);
+                return lesson;
             }
             // Dvi pidgypu:
             // Persha
             if (!g1w1.equals("")&&!g1w1.equals("e")&&g1w2.equals(g2w2)&&g2w2.equals("e")&&g2w1.equals("")){
                 g1w2 = g1w1;
                 g2w2 = g2w1;
-                return;
+                lesson.setGroup1Week1(g1w1);
+                lesson.setGroup1Week2(g1w2);
+                lesson.setGroup2Week1(g2w1);
+                lesson.setGroup2Week2(g2w2);
+                return lesson;
             }
             // Dryga
             if (!g2w1.equals("")&&!g2w1.equals("e")&&g1w2.equals(g2w2)&&g2w2.equals("e")&&g1w1.equals("")){
                 g1w2 = g1w1;
                 g2w2 = g2w1;
-                return;
+                lesson.setGroup1Week1(g1w1);
+                lesson.setGroup1Week2(g1w2);
+                lesson.setGroup2Week1(g2w1);
+                lesson.setGroup2Week2(g2w2);
+                return lesson;
             }
             // Razom
             if (g1w2.equals(g2w2)&&g2w2.equals("e")&&!g1w1.equals("e")&&!g1w1.equals("")&&!g2w1.equals("e")&&!g2w1.equals("")){
                 g1w2 = g1w1;
                 g2w2 = g2w1;
-                return;
+                lesson.setGroup1Week1(g1w1);
+                lesson.setGroup1Week2(g1w2);
+                lesson.setGroup2Week1(g2w1);
+                lesson.setGroup2Week2(g2w2);
+                return lesson;
             }
-        }
-
-        private Lesson getLesson(String line){
-            return null;
+            // Default
+            lesson.setGroup1Week1(g1w1);
+            lesson.setGroup1Week2(g1w2);
+            lesson.setGroup2Week1(g2w1);
+            lesson.setGroup2Week2(g2w2);
+            return lesson;
         }
     }
 }

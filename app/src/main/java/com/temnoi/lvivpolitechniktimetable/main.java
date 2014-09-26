@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.http.HttpEntity;
@@ -24,11 +25,21 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Attribute;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -40,6 +51,10 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
      */
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
     String url_politeh = "http://lp.edu.ua/node/40?inst=8&group=7009&semestr=0&semest_part=1";
+
+    public static final String[] DAYS = new String[] {
+            "Пн","Вт","Ср","Чт","Пт"
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -161,7 +176,7 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
         DBAdapter dbAdapter = new DBAdapter(this);
 
         Log.d("Insert: ", "Inserting ..");
-        dbAdapter.addContact(new Lesson("Monday", "1", "Programming", "Programming", "Theory", "Philosophy"));
+        dbAdapter.addLesson(new Lesson("Monday", "1", "Programming", "Programming", "Theory", "Philosophy"));
         Log.d("Reading: ", "Reading all contacts..");
         List<Lesson> contacts = dbAdapter.getAllContacts();
 
@@ -174,9 +189,7 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
         Toast.makeText(main.this,"DONE",Toast.LENGTH_SHORT).show();
     }
 
-    /*
-    Class for working with source of html page with timetable
-     */
+    /*Class for working with source of html page with timetable*/
     class Timetable extends AsyncTask<Void, Integer, String>{
         @Override
         protected String doInBackground(Void... params) {
@@ -184,17 +197,30 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
             HttpClient client = new DefaultHttpClient();
             HttpGet httpGet = new HttpGet(url_politeh);
             try {
+                // Get source of page from line to line
                 HttpResponse response = client.execute(httpGet);
                 HttpEntity entity = response.getEntity();
                 InputStream inputStream = entity.getContent();
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"UTF-8"),8);
                 StringBuilder stringBuilder = new StringBuilder();
                 String line = null;
+                Boolean read_flag = false;
+                // Work with source
                 while((line = bufferedReader.readLine())!=null){
-                    stringBuilder.append(line+'\n');
+                    if ((!read_flag)&&(line.contains("<td align=\"center\" valign=\"middle\" rowspan=\"4\" class=\"leftcell\">Пн"))){
+                        read_flag = true;
+                    } else if ((read_flag)&&(line.equals("<div style=\"padding-top:20px;\"> Останнє оновлення: 17 вересня 2014 р. о 18:35</div></div>"))){
+                        read_flag = false;
+                    }
+                    if (read_flag) {
+                        //Check chyselnuk/pidgrypa
+                        line = deleteTag(line);
+                        if (!line.trim().equals("")) {
+                            stringBuilder.append(line).append('\n');
+                        }
+                    }
                 }
                 inputStream.close();
-
                 return stringBuilder.toString();
             } catch (IOException e) {
                 return "ERROR";
@@ -210,6 +236,145 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
         protected void onPostExecute(String par){
             EditText text = (EditText) findViewById(R.id.editText2);
             text.setText(par);
+            if (Arrays.asList(DAYS).contains("Пн"))
+                Toast.makeText(main.this,Integer.toString(par.length()),Toast.LENGTH_LONG).show();
+        }
+
+        private String deleteTag(String line){
+            if ((line.indexOf('>') - line.indexOf('<')) > 0) {
+                int start_index = line.indexOf('<');
+                int finish_index = line.indexOf('>')+1;
+
+                line = line.replace(line.substring(start_index, finish_index), "");
+
+                return deleteTag(line);
+            } else {
+                return line;
+            }
+        }
+
+        private Lesson getLessons(StringBuilder stringBuilder){
+            String[] lines = stringBuilder.toString().split("\\n");
+            Lesson lesson = new Lesson();
+            Boolean table_start = false;
+            Integer line_index = 0;
+            String g1w1 = "e";//e - empty
+            String g1w2 = "e";
+            String g2w1 = "e";
+            String g2w2 = "e";
+            Byte td_count = 0;
+            Byte lesson_number = 0;
+            Boolean rowspan_check = false;
+
+            for (String s: lines){
+                line_index++;
+                if (s.contains("<table")){
+                    table_start = true;
+                } else if (s.contains("</table")){
+                    table_start = false;
+                }
+                if (table_start) {
+                    if (s.contains("<td") || s.contains("<div")) {
+                        if (s.contains("<td")) {
+                            td_count++;
+                            if (s.contains("rowspan")){
+                                rowspan_check = true;
+                            }
+                        }
+                        if (lines[line_index].contains("<div")){
+                            continue;
+                        }
+                        switch (lesson_number){
+                            case 0:
+                                g1w1 = deleteTag(s).trim();
+                                if (rowspan_check){ // якщо перша підгрупа
+                                    g1w2 = g1w1;
+                                    lesson_number++; // наступний запис на lesson_number = 2
+                                }
+                                lesson_number++;
+                                break;
+                            case 1:
+                                if (td_count == 2) { // якщо поділ на підгрупи
+                                    g2w1 = deleteTag(s).trim();
+                                    if (rowspan_check){ // якщо друга підгрупа
+                                        g2w2 = g2w1;
+                                    }
+                                } else {
+                                    g1w2 = deleteTag(s).trim();
+                                    if (rowspan_check){
+                                        g1w1 = g1w2;
+                                    }
+                                }
+                                lesson_number++;
+                                break;
+                            case 2:
+                                if (td_count == 1) {
+                                    g1w2 = deleteTag(s).trim();
+                                } else {
+                                    g2w1 = deleteTag(s).trim();
+                                }
+                                lesson_number++;
+                                break;
+                            case 3:
+                                g2w2 = deleteTag(s).trim();
+                                lesson_number = 0;
+                                break;
+                        }
+                    }
+                    if (s.contains("</tr")) {
+                        td_count = 0;
+                        rowspan_check = false;
+                    }
+                }
+            }
+
+            // Odna para
+            if (!g1w1.equals(g1w2)&&g1w2.equals(g2w1)&&g2w1.equals(g2w2)&&g2w2.equals("e")){
+                g1w2 = g2w1 = g2w2 = g1w1;
+                return ;
+            }
+            // Chyselnuk i znamennuk:
+            // Chyselnuk
+            if (!g1w1.equals(g1w2)&&!g1w2.equals(g2w1)&&g1w2.equals("")&&g2w1.equals(g2w2)&&g2w2.equals("e")){
+                g2w1 = g1w1;
+                g2w2 = g1w2;
+                return;
+            }
+            // Znamennuk
+            if (!g1w1.equals(g1w2)&&!g1w2.equals(g2w1)&&g1w1.equals("")&&g2w1.equals(g2w2)&&g2w2.equals("e")){
+                g2w2 = g1w2;
+                g2w1 = g1w1;
+                return;
+            }
+            // Razom
+            if (!g1w1.equals(g1w2)&&!g1w1.equals("")&&!g1w2.equals("")&&g2w1.equals(g2w2)&&g2w2.equals("e")){
+                g2w1 = g1w1;
+                g2w2 = g1w2;
+                return;
+            }
+            // Dvi pidgypu:
+            // Persha
+            if (!g1w1.equals("")&&!g1w1.equals("e")&&g1w2.equals(g2w2)&&g2w2.equals("e")&&g2w1.equals("")){
+                g1w2 = g1w1;
+                g2w2 = g2w1;
+                return;
+            }
+            // Dryga
+            if (!g2w1.equals("")&&!g2w1.equals("e")&&g1w2.equals(g2w2)&&g2w2.equals("e")&&g1w1.equals("")){
+                g1w2 = g1w1;
+                g2w2 = g2w1;
+                return;
+            }
+            // Razom
+            if (g1w2.equals(g2w2)&&g2w2.equals("e")&&!g1w1.equals("e")&&!g1w1.equals("")&&!g2w1.equals("e")&&!g2w1.equals("")){
+                g1w2 = g1w1;
+                g2w2 = g2w1;
+                return;
+            }
+        }
+
+        private Lesson getLesson(String line){
+            return null;
         }
     }
 }

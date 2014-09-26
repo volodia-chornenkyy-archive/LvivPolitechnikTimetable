@@ -4,13 +4,13 @@ package com.temnoi.lvivpolitechniktimetable;
  * Created by Volodia on 17.09.2014.
  */
 public class Lesson {
-    int _id;
-    String _day;
-    String _less_num;
-    String _g1w1;
-    String _g2w1;
-    String _g1w2;
-    String _g2w2;
+    private int _id;
+    private String _day;
+    private String _less_num;
+    private String _g1w1;
+    private String _g2w1;
+    private String _g1w2;
+    private String _g2w2;
 
     public Lesson(){
 

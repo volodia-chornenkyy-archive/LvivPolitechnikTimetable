@@ -51,7 +51,7 @@ public class DBAdapter extends SQLiteOpenHelper{
     }
 
     // Adding new contact
-    public void addContact(Lesson lesson) {
+    public void addLesson(Lesson lesson) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_DAY, lesson.getDay());

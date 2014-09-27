@@ -97,4 +97,7 @@ public class Lesson {
         this._g2w2 = g2w2;
     }
 
+    public Lesson clear(){
+        return new Lesson("","","","","","");
+    }
 }

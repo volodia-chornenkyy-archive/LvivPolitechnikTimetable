@@ -1,9 +1,6 @@
 package com.temnoi.lvivpolitechniktimetable;
 
-import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -17,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.http.HttpEntity;
@@ -25,14 +21,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Attribute;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -45,15 +33,11 @@ import java.util.List;
 
 public class main extends ActionBarActivity implements ActionBar.OnNavigationListener {
 
-    /**
-     * The serialization (saved instance state) Bundle key representing the
-     * current dropdown position.
-     */
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
-    String url_politeh = "http://lp.edu.ua/node/40?inst=8&group=7009&semestr=0&semest_part=1";
+    String url_politeh = "http://lp.edu.ua/node/40?inst=8&group=7008&semestr=0&semest_part=1";
 
-    public static final String[] DAYS = new String[] {
-            "Пн","Вт","Ср","Чт","Пт"
+    public static final String[] DAYS = new String[]{
+            "Пн", "Вт", "Ср", "Чт", "Пт"
     };
 
     @Override
@@ -73,7 +57,7 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                         actionBar.getThemedContext(),
                         android.R.layout.simple_list_item_1,
                         android.R.id.text1,
-                        new String[] {
+                        new String[]{
                                 getString(R.string.title_section1),
                                 getString(R.string.title_section2),
                                 getString(R.string.title_section3),
@@ -161,18 +145,18 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
+                                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             return rootView;
         }
     }
 
 
-    public void getText(View view){
+    public void getText(View view) {
         new Timetable().execute();
     }
 
-    public void setDB(View view){
+    public void setDB(View view) {
         DBAdapter dbAdapter = new DBAdapter(this);
 
         Log.d("Insert: ", "Inserting ..");
@@ -186,11 +170,11 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
             Log.d("Name: ", log);
         }
 
-        Toast.makeText(main.this,"DONE",Toast.LENGTH_SHORT).show();
+        Toast.makeText(main.this, "DONE", Toast.LENGTH_SHORT).show();
     }
 
     /*Class for working with source of html page with timetable*/
-    class Timetable extends AsyncTask<Void, Integer, String>{
+    class Timetable extends AsyncTask<Void, Integer, String> {
         @Override
         protected String doInBackground(Void... params) {
             //Get source of html-page from its source code
@@ -201,15 +185,15 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                 HttpResponse response = client.execute(httpGet);
                 HttpEntity entity = response.getEntity();
                 InputStream inputStream = entity.getContent();
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"UTF-8"),8);
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8);
                 StringBuilder stringBuilder = new StringBuilder();
                 String line = null;
                 Boolean read_flag = false;
                 // Work with source
-                while((line = bufferedReader.readLine())!=null){
-                    if ((!read_flag)&&(line.contains("<td align=\"center\" valign=\"middle\" rowspan=\"4\" class=\"leftcell\">Пн"))){
+                while ((line = bufferedReader.readLine()) != null) {
+                    if ((!read_flag) && (line.contains("<td align=\"center\" valign=\"middle\" rowspan=\"4\" class=\"leftcell\">Пн"))) {
                         read_flag = true;
-                    } else if ((read_flag)&&(line.equals("<div style=\"padding-top:20px;\"> Останнє оновлення: 17 вересня 2014 р. о 18:35</div></div>"))){
+                    } else if ((read_flag) && (line.equals("<div style=\"padding-top:20px;\"> Останнє оновлення: 17 вересня 2014 р. о 18:35</div></div>"))) {
                         read_flag = false;
                     }
                     if (read_flag) {
@@ -238,17 +222,17 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
         }
 
         @Override
-        protected void onPostExecute(String par){
+        protected void onPostExecute(String par) {
             EditText text = (EditText) findViewById(R.id.editText2);
             text.setText(par);
             if (Arrays.asList(DAYS).contains("Пн"))
-                Toast.makeText(main.this,Integer.toString(par.length()),Toast.LENGTH_LONG).show();
+                Toast.makeText(main.this, Integer.toString(par.length()), Toast.LENGTH_LONG).show();
         }
 
-        private String deleteTag(String line){
+        private String deleteTag(String line) {
             if ((line.indexOf('>') - line.indexOf('<')) > 0) {
                 int start_index = line.indexOf('<');
-                int finish_index = line.indexOf('>')+1;
+                int finish_index = line.indexOf('>') + 1;
 
                 line = line.replace(line.substring(start_index, finish_index), "");
 
@@ -258,13 +242,15 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
             }
         }
 
-        private Lesson getLessons(StringBuilder stringBuilder){
+        Lesson lesson = new Lesson();
+
+        private Lesson getLessons(StringBuilder stringBuilder) {
             String[] lines = stringBuilder.toString().split("\\n");
-            Lesson lesson = new Lesson();
-            String day = "e";
-            String number = "e";
+
             Boolean table_start = false;
             Integer line_index = 0;
+            String day = "e";
+            String number = "e";
             String g1w1 = "e";//e - empty
             String g1w2 = "e";
             String g2w1 = "e";
@@ -273,50 +259,56 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
             Byte lesson_number = 0;
             Boolean rowspan_check = false;
 
-            for (String s: lines){
+            for (String s : lines) {
                 line_index++;
                 // Get day
                 if (s.contains("<td align=\"center\" valign=\"middle\" rowspan=\"")) {
                     day = deleteTag(s).trim();
-                    day = day.substring(0,2);
+                    day = day.substring(0, 2); // remove last char=number
                 }
                 lesson.setDay(day);
                 // Get lesson number
                 if (s.contains("align=\"center\" valign=\"middle\" class=\"leftcell\">")) {
                     number = deleteTag(s).trim();
-                    number = number.replaceAll("[^0-9]","");
+                    number = number.replaceAll("[^0-9]", ""); // remove all letters
                 }
-                lesson.setLessonNumber(number);
                 // Get lesson
-                if (s.contains("<table")){
+                if (s.contains("<table")) {
                     table_start = true;
-                } else if (s.contains("</table")){
+                    lesson.setLessonNumber(number);
+                } else if (s.contains("</table")) {
                     table_start = false;
-                    lesson = formatLesson(lesson,g1w1,g1w2,g2w1,g2w2);
-                    g1w1 = "e";//e - empty
-                    g1w2 = "e";
-                    g2w1 = "e";
-                    g2w2 = "e";
+                    formatLesson(g1w1, g1w2, g2w1, g2w2);
                     lesson_number = 0;
-                    System.out.println("day: "+lesson.getDay()+"\nnumber: "+lesson.getLessonNumber()
-                            +"\ng1w1: "+lesson.getGroup1Week1()+"\ng1w2: "+lesson.getGroup1Week2()
-                            +"\ng2w1: "+lesson.getGroup2Week1()+"\ng2w2: "+lesson.getGroup2Week2());
+                    System.out.println("day: " + lesson.getDay() + "\nnumber: " + lesson.getLessonNumber()
+                            + "\ng1w1: " + lesson.getGroup1Week1() + "\ng2w1: " + lesson.getGroup2Week1()
+                            + "\ng1w2: " + lesson.getGroup1Week2() + "\ng2w2: " + lesson.getGroup2Week2());
+                    g2w2 = g1w2 = g2w1 = g1w1 = "e";//e - empty
+                    lesson = lesson.clear();
+                    System.out.println("********************");
                 }
                 if (table_start) {
+                    if (s.contains("<table") && s.contains("<td colspan=\"2\" class=\"maincell\">")) {
+                        s = s.replace("<td colspan=\"2\" class=\"maincell\">", "");
+                    }
                     if (s.contains("<td") || s.contains("<div")) {
                         if (s.contains("<td")) {
                             td_count++;
-                            if (s.contains("rowspan")){
+                            if (s.contains("rowspan")) {
                                 rowspan_check = true;
                             }
                         }
-                        if (lines[line_index].contains("<div")){
-                            continue;
+                        if (lines[line_index].contains("<div")) {
+                            //continue;
                         }
-                        switch (lesson_number){
+                        if (td_count == 3) {
+                            td_count = 1; //     !!!!!!!!!!!BAG solver!!!!!!!!!!!!!
+                        }
+
+                        switch (lesson_number) {
                             case 0:
                                 g1w1 = deleteTag(s).trim();
-                                if (rowspan_check){ // якщо перша підгрупа
+                                if (rowspan_check) { // якщо перша підгрупа
                                     g1w2 = g1w1;
                                     lesson_number++; // наступний запис на lesson_number = 2
                                 }
@@ -325,12 +317,12 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                             case 1:
                                 if (td_count == 2) { // якщо поділ на підгрупи
                                     g2w1 = deleteTag(s).trim();
-                                    if (rowspan_check){ // якщо друга підгрупа
+                                    if (rowspan_check) { // якщо друга підгрупа
                                         g2w2 = g2w1;
                                     }
                                 } else {
                                     g1w2 = deleteTag(s).trim();
-                                    if (rowspan_check){
+                                    if (rowspan_check) {
                                         g1w1 = g1w2;
                                     }
                                 }
@@ -350,96 +342,152 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                                 break;
                         }
                     }
-                    if (s.contains("</tr")) {
-                        td_count = 0;
-                        rowspan_check = false;
-                    }
+                }
+                if (s.contains("</tr")) {
+                    td_count = 0;
+                    rowspan_check = false;
                 }
             }
-
-
             return null;
         }
 
-        private Lesson formatLesson(Lesson lesson,String g1w1, String g1w2, String g2w1, String g2w2){
-            //Lesson lesson = new Lesson();
+        private void formatLesson(String g1w1, String g1w2, String g2w1, String g2w2) {
             // Odna para
-            if (!g1w1.equals(g1w2)&&g1w2.equals(g2w1)&&g2w1.equals(g2w2)&&g2w2.equals("e")){
+            if (!g1w1.equals(g1w2) && g1w2.equals(g2w1) && g2w1.equals(g2w2) && g2w2.equals("e")) {
                 g1w2 = g2w1 = g2w2 = g1w1;
                 lesson.setGroup1Week1(g1w1);
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);
                 lesson.setGroup2Week2(g2w2);
-                return lesson;
+                return;
             }
             // Chyselnuk i znamennuk:
             // Chyselnuk
-            if (!g1w1.equals(g1w2)&&!g1w2.equals(g2w1)&&g1w2.equals("")&&g2w1.equals(g2w2)&&g2w2.equals("e")){
+            if (!g1w1.equals(g1w2) && !g1w2.equals(g2w1) && g1w2.equals("") && g2w1.equals(g2w2) && g2w2.equals("e")) {
                 g2w1 = g1w1;
                 g2w2 = g1w2;
                 lesson.setGroup1Week1(g1w1);
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);
                 lesson.setGroup2Week2(g2w2);
-                return lesson;
+                return;
+            }
+            // Chyselnuk BAG solver
+            if (g1w1.equals(g1w2) && g1w1.equals("") && !g1w1.equals("e") && !g2w1.equals("") && !g2w1.equals(g2w2) && g2w2.equals("e")) {
+                g1w1 = g2w1;
+                g2w2 = "";
+                lesson.setGroup1Week1(g1w1);
+                lesson.setGroup1Week2(g1w2);
+                lesson.setGroup2Week1(g2w1);
+                lesson.setGroup2Week2(g2w2);
+                return;
             }
             // Znamennuk
-            if (!g1w1.equals(g1w2)&&!g1w2.equals(g2w1)&&g1w1.equals("")&&g2w1.equals(g2w2)&&g2w2.equals("e")){
+            if (!g1w1.equals(g1w2) && !g1w2.equals(g2w1) && g1w1.equals("") && g2w1.equals(g2w2) && g2w2.equals("e")) {
                 g2w2 = g1w2;
                 g2w1 = g1w1;
                 lesson.setGroup1Week1(g1w1);
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);
                 lesson.setGroup2Week2(g2w2);
-                return lesson;
+                return;
+            }
+            // Znamennuk BAG solver
+            if (!g1w2.equals("") && !g1w2.equals("e") && g2w2.equals("e") && g1w1.equals("") && g2w1.equals(g1w1)) {
+                g2w2 = g1w2;
+                lesson.setGroup1Week1(g1w1);
+                lesson.setGroup1Week2(g1w2);
+                lesson.setGroup2Week1(g2w1);
+                lesson.setGroup2Week2(g2w2);
+                return;
             }
             // Razom
-            if (!g1w1.equals(g1w2)&&!g1w1.equals("")&&!g1w2.equals("")&&g2w1.equals(g2w2)&&g2w2.equals("e")){
+            if (!g1w1.equals(g1w2) && !g1w1.equals("") && !g1w2.equals("") && g2w1.equals(g2w2) && g2w2.equals("e")) {
                 g2w1 = g1w1;
                 g2w2 = g1w2;
                 lesson.setGroup1Week1(g1w1);
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);
                 lesson.setGroup2Week2(g2w2);
-                return lesson;
+                return;
+            }
+            // Razom BAG solver
+            if (g1w1.equals("") && g2w2.equals("e") && !g2w1.equals("") && !g2w1.equals("e") && !g1w2.equals("") && !g1w2.equals("e")) {
+                g1w1 = g2w1;
+                g2w2 = g1w2;
+                lesson.setGroup1Week1(g1w1);
+                lesson.setGroup1Week2(g1w2);
+                lesson.setGroup2Week1(g2w1);
+                lesson.setGroup2Week2(g2w2);
+                return;
             }
             // Dvi pidgypu:
             // Persha
-            if (!g1w1.equals("")&&!g1w1.equals("e")&&g1w2.equals(g2w2)&&g2w2.equals("e")&&g2w1.equals("")){
+            if (!g1w1.equals("") && !g1w1.equals("e") && g1w2.equals(g2w2) && g2w2.equals("e") && g2w1.equals("")) {
                 g1w2 = g1w1;
                 g2w2 = g2w1;
                 lesson.setGroup1Week1(g1w1);
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);
                 lesson.setGroup2Week2(g2w2);
-                return lesson;
+                return;
+            }
+            // Persha BAG solver
+            if (g1w1.equals("") && g1w2.equals(g1w1) && g2w2.equals("e") && !g2w1.equals("") && !g2w1.equals("e")) {
+                g1w1 = g1w2 = g2w1;
+                g2w1 = g2w2 = "";
+                lesson.setGroup1Week1(g1w1);
+                lesson.setGroup1Week2(g1w2);
+                lesson.setGroup2Week1(g2w1);
+                lesson.setGroup2Week2(g2w2);
+                return;
             }
             // Dryga
-            if (!g2w1.equals("")&&!g2w1.equals("e")&&g1w2.equals(g2w2)&&g2w2.equals("e")&&g1w1.equals("")){
+            if (!g2w1.equals("") && !g2w1.equals("e") && g1w2.equals(g2w2) && g2w2.equals("e") && g1w1.equals("")) {
                 g1w2 = g1w1;
                 g2w2 = g2w1;
                 lesson.setGroup1Week1(g1w1);
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);
                 lesson.setGroup2Week2(g2w2);
-                return lesson;
+                return;
             }
             // Razom
-            if (g1w2.equals(g2w2)&&g2w2.equals("e")&&!g1w1.equals("e")&&!g1w1.equals("")&&!g2w1.equals("e")&&!g2w1.equals("")){
+            if (g1w2.equals(g2w2) && g2w2.equals("e") && !g1w1.equals("e") && !g1w1.equals("") && !g2w1.equals("e") && !g2w1.equals("")) {
                 g1w2 = g1w1;
                 g2w2 = g2w1;
                 lesson.setGroup1Week1(g1w1);
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);
                 lesson.setGroup2Week2(g2w2);
-                return lesson;
+                return;
+            }
+            // Podil na 4 BAG solver
+            // from 1(g1w1) to 4(g2w2)
+            if (!g1w1.equals("") && !g1w1.equals("e") && g2w1.equals("") && g1w2.equals(g2w1) && g2w2.equals(g1w2)) {
+                g2w2 = g1w1;
+                g1w1 = "";
+                lesson.setGroup1Week1(g1w1);
+                lesson.setGroup1Week2(g1w2);
+                lesson.setGroup2Week1(g2w1);
+                lesson.setGroup2Week2(g2w2);
+                return;
+            }
+            // from 3(g2w1) to 1
+            if (!g2w1.equals("") && !g2w1.equals("e") && g1w1.equals("") && g1w2.equals(g1w1) && g2w2.equals(g1w2)) {
+                g1w1 = g2w1;
+                g2w1 = "";
+                lesson.setGroup1Week1(g1w1);
+                lesson.setGroup1Week2(g1w2);
+                lesson.setGroup2Week1(g2w1);
+                lesson.setGroup2Week2(g2w2);
+                return;
             }
             // Default
             lesson.setGroup1Week1(g1w1);
             lesson.setGroup1Week2(g1w2);
             lesson.setGroup2Week1(g2w1);
             lesson.setGroup2Week2(g2w2);
-            return lesson;
         }
     }
 }

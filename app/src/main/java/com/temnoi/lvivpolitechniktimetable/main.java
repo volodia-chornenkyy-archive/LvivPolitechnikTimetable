@@ -26,15 +26,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
 public class main extends ActionBarActivity implements ActionBar.OnNavigationListener {
 
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
-    String url_politeh = "http://lp.edu.ua/node/40?inst=8&group=7008&semestr=0&semest_part=1";
+    String url_politeh = "http://lp.edu.ua/node/40?inst=8&group=7009&semestr=0&semest_part=1";
 
     public static final String[] DAYS = new String[]{
             "Пн", "Вт", "Ср", "Чт", "Пт"
@@ -170,7 +168,7 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
             Log.d("Name: ", log);
         }
 
-        Toast.makeText(main.this, "DONE", Toast.LENGTH_SHORT).show();
+        Toast.makeText(main.this, "Work with DB complete", Toast.LENGTH_SHORT).show();
     }
 
     /*Class for working with source of html page with timetable*/
@@ -189,6 +187,10 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                 StringBuilder stringBuilder = new StringBuilder();
                 String line = null;
                 Boolean read_flag = false;
+
+                // test string builder
+                StringBuilder test = new StringBuilder();
+
                 // Work with source
                 while ((line = bufferedReader.readLine()) != null) {
                     if ((!read_flag) && (line.contains("<td align=\"center\" valign=\"middle\" rowspan=\"4\" class=\"leftcell\">Пн"))) {
@@ -197,21 +199,37 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                         read_flag = false;
                     }
                     if (read_flag) {
-                        //Check chyselnuk/pidgrypa
-                        //line = deleteTag(line);
-                        if (!line.trim().equals("")) {
+                        String temp = line;
+                        if (line.contains("</table")){
+                            line = line.substring(0,line.indexOf("</table>")+8);
+                            //Log.d("Line = ",line);
                             stringBuilder.append(line).append('\n');
-                        }
+                            getLessons(stringBuilder);
+                            Log.d("","------------------------");
+                            //test
+                            test.append(stringBuilder).append('\n');
+                            test.append("---------------------------------").append('\n');
+                            //test END
+                            stringBuilder.delete(0, stringBuilder.length());
+                            line = temp.substring(temp.indexOf("</table>")+8, temp.length());
+                            stringBuilder.append(line).append('\n');
+                            //Log.d(this.getClass().getName(),"***ONE DAY MISSION COMPLETE***");
+                        } else {
+							stringBuilder.append(line).append('\n');
+						}
                     }
                 }
                 inputStream.close();
 
-                Lesson lesson = new Lesson();
-                ArrayList<Lesson> timetable = new ArrayList<Lesson>();
-                lesson = getLessons(stringBuilder);
+                //Lesson lesson = new Lesson();
+                //ArrayList<Lesson> timetable = new ArrayList<Lesson>();
+                //lesson = getLessons(stringBuilder);
 
-                return stringBuilder.toString();
+                // return string for put it in the text view
+                //return stringBuilder.toString();
+                return deleteTag(test.toString());
             } catch (IOException e) {
+                Log.d(this.getClass().getName(),"***Smth goes wrong when data was took form internet***");
                 return "ERROR";
             }
         }
@@ -225,8 +243,7 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
         protected void onPostExecute(String par) {
             EditText text = (EditText) findViewById(R.id.editText2);
             text.setText(par);
-            if (Arrays.asList(DAYS).contains("Пн"))
-                Toast.makeText(main.this, Integer.toString(par.length()), Toast.LENGTH_LONG).show();
+            Toast.makeText(main.this, "All source was got....for now;)", Toast.LENGTH_LONG).show();
         }
 
         private String deleteTag(String line) {
@@ -242,15 +259,16 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
             }
         }
 
+        // Glob var for lesson save/work
         Lesson lesson = new Lesson();
+        String day = "e";
+        String number = "e";
 
         private Lesson getLessons(StringBuilder stringBuilder) {
             String[] lines = stringBuilder.toString().split("\\n");
 
             Boolean table_start = false;
             Integer line_index = 0;
-            String day = "e";
-            String number = "e";
             String g1w1 = "e";//e - empty
             String g1w2 = "e";
             String g2w1 = "e";
@@ -271,6 +289,7 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                 if (s.contains("align=\"center\" valign=\"middle\" class=\"leftcell\">")) {
                     number = deleteTag(s).trim();
                     number = number.replaceAll("[^0-9]", ""); // remove all letters
+                    //System.out.println("NUMBER EXCIST!!!!\n"+s);
                 }
                 // Get lesson
                 if (s.contains("<table")) {
@@ -284,25 +303,26 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                             + "\ng1w1: " + lesson.getGroup1Week1() + "\ng2w1: " + lesson.getGroup2Week1()
                             + "\ng1w2: " + lesson.getGroup1Week2() + "\ng2w2: " + lesson.getGroup2Week2());
                     g2w2 = g1w2 = g2w1 = g1w1 = "e";//e - empty
+                    //number = "e";
                     lesson = lesson.clear();
-                    System.out.println("********************");
+                    break;
                 }
                 if (table_start) {
-                    if (s.contains("<table") && s.contains("<td colspan=\"2\" class=\"maincell\">")) {
-                        s = s.replace("<td colspan=\"2\" class=\"maincell\">", "");
+                    if (s.indexOf("<table")>0){
+                        s = s.substring(s.indexOf("<table"));
                     }
                     if (s.contains("<td") || s.contains("<div")) {
                         if (s.contains("<td")) {
                             td_count++;
+                            if (td_count == 3) {
+                                td_count = 1; //     !!!!!!!!!!!BAG solver!!!!!!!!!!!!!
+                            }
                             if (s.contains("rowspan")) {
                                 rowspan_check = true;
                             }
                         }
                         if (lines[line_index].contains("<div")) {
                             //continue;
-                        }
-                        if (td_count == 3) {
-                            td_count = 1; //     !!!!!!!!!!!BAG solver!!!!!!!!!!!!!
                         }
 
                         switch (lesson_number) {
@@ -372,29 +392,10 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                 lesson.setGroup2Week2(g2w2);
                 return;
             }
-            // Chyselnuk BAG solver
-            if (g1w1.equals(g1w2) && g1w1.equals("") && !g1w1.equals("e") && !g2w1.equals("") && !g2w1.equals(g2w2) && g2w2.equals("e")) {
-                g1w1 = g2w1;
-                g2w2 = "";
-                lesson.setGroup1Week1(g1w1);
-                lesson.setGroup1Week2(g1w2);
-                lesson.setGroup2Week1(g2w1);
-                lesson.setGroup2Week2(g2w2);
-                return;
-            }
             // Znamennuk
             if (!g1w1.equals(g1w2) && !g1w2.equals(g2w1) && g1w1.equals("") && g2w1.equals(g2w2) && g2w2.equals("e")) {
                 g2w2 = g1w2;
                 g2w1 = g1w1;
-                lesson.setGroup1Week1(g1w1);
-                lesson.setGroup1Week2(g1w2);
-                lesson.setGroup2Week1(g2w1);
-                lesson.setGroup2Week2(g2w2);
-                return;
-            }
-            // Znamennuk BAG solver
-            if (!g1w2.equals("") && !g1w2.equals("e") && g2w2.equals("e") && g1w1.equals("") && g2w1.equals(g1w1)) {
-                g2w2 = g1w2;
                 lesson.setGroup1Week1(g1w1);
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);
@@ -411,31 +412,11 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                 lesson.setGroup2Week2(g2w2);
                 return;
             }
-            // Razom BAG solver
-            if (g1w1.equals("") && g2w2.equals("e") && !g2w1.equals("") && !g2w1.equals("e") && !g1w2.equals("") && !g1w2.equals("e")) {
-                g1w1 = g2w1;
-                g2w2 = g1w2;
-                lesson.setGroup1Week1(g1w1);
-                lesson.setGroup1Week2(g1w2);
-                lesson.setGroup2Week1(g2w1);
-                lesson.setGroup2Week2(g2w2);
-                return;
-            }
             // Dvi pidgypu:
             // Persha
             if (!g1w1.equals("") && !g1w1.equals("e") && g1w2.equals(g2w2) && g2w2.equals("e") && g2w1.equals("")) {
                 g1w2 = g1w1;
                 g2w2 = g2w1;
-                lesson.setGroup1Week1(g1w1);
-                lesson.setGroup1Week2(g1w2);
-                lesson.setGroup2Week1(g2w1);
-                lesson.setGroup2Week2(g2w2);
-                return;
-            }
-            // Persha BAG solver
-            if (g1w1.equals("") && g1w2.equals(g1w1) && g2w2.equals("e") && !g2w1.equals("") && !g2w1.equals("e")) {
-                g1w1 = g1w2 = g2w1;
-                g2w1 = g2w2 = "";
                 lesson.setGroup1Week1(g1w1);
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);
@@ -456,17 +437,6 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
             if (g1w2.equals(g2w2) && g2w2.equals("e") && !g1w1.equals("e") && !g1w1.equals("") && !g2w1.equals("e") && !g2w1.equals("")) {
                 g1w2 = g1w1;
                 g2w2 = g2w1;
-                lesson.setGroup1Week1(g1w1);
-                lesson.setGroup1Week2(g1w2);
-                lesson.setGroup2Week1(g2w1);
-                lesson.setGroup2Week2(g2w2);
-                return;
-            }
-            // Podil na 4 BAG solver
-            // from 1(g1w1) to 4(g2w2)
-            if (!g1w1.equals("") && !g1w1.equals("e") && g2w1.equals("") && g1w2.equals(g2w1) && g2w2.equals(g1w2)) {
-                g2w2 = g1w1;
-                g1w1 = "";
                 lesson.setGroup1Week1(g1w1);
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);

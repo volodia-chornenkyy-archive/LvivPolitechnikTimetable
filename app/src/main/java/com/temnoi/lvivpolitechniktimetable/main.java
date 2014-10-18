@@ -26,6 +26,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -149,32 +150,35 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
         }
     }
 
-
+    // btn click method; in future rename to Refresh
     public void getText(View view) {
         new Timetable().execute();
     }
 
-    public void setDB(View view) {
+    public void addToDatabase(ArrayList<Lesson> lesson) {
         DBAdapter dbAdapter = new DBAdapter(this);
+        dbAdapter.clear();
+        lesson.trimToSize();
+        for (int i = 0; i<lesson.size()-1;i++) {
+            if (!lesson.get(i).getGroup1Week1().equals("e")
+                    && !lesson.get(i).getGroup1Week2().equals("e")
+                    && !lesson.get(i).getGroup2Week1().equals("e")
+                    && !lesson.get(i).getGroup2Week2().equals("e"))
+            dbAdapter.addLesson(lesson.get(i));
+        }
 
-        Log.d("Insert: ", "Inserting ..");
-        dbAdapter.addLesson(new Lesson("Monday", "1", "Programming", "Programming", "Theory", "Philosophy"));
-        Log.d("Reading: ", "Reading all contacts..");
-        List<Lesson> contacts = dbAdapter.getAllContacts();
-
+        /*List<Lesson> contacts = dbAdapter.getAllContacts();
         for (Lesson cn : contacts) {
             String log = "Id: " + cn.getID() + " ,Name: " + cn.getDay() + " ,Phone: " + cn.getGroup1Week1();
-            // Writing Contacts to log
-            Log.d("Name: ", log);
-        }
+        }*/
 
         Toast.makeText(main.this, "Work with DB complete", Toast.LENGTH_SHORT).show();
     }
 
     /*Class for working with source of html page with timetable*/
-    class Timetable extends AsyncTask<Void, Integer, String> {
+    class Timetable extends AsyncTask<Void, Integer, ArrayList<Lesson>> {
         @Override
-        protected String doInBackground(Void... params) {
+        protected ArrayList<Lesson> doInBackground(Void... params) {
             //Get source of html-page from its source code
             HttpClient client = new DefaultHttpClient();
             HttpGet httpGet = new HttpGet(url_politeh);
@@ -183,13 +187,14 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                 HttpResponse response = client.execute(httpGet);
                 HttpEntity entity = response.getEntity();
                 InputStream inputStream = entity.getContent();
+
+                // Variables
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8);
                 StringBuilder stringBuilder = new StringBuilder();
                 String line = null;
                 Boolean read_flag = false;
-
-                // test string builder
-                StringBuilder test = new StringBuilder();
+                Lesson lesson = new Lesson();
+                ArrayList<Lesson> list = new ArrayList<Lesson>();
 
                 // Work with source
                 while ((line = bufferedReader.readLine()) != null) {
@@ -202,35 +207,22 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                         String temp = line;
                         if (line.contains("</table")){
                             line = line.substring(0,line.indexOf("</table>")+8);
-                            //Log.d("Line = ",line);
                             stringBuilder.append(line).append('\n');
-                            getLessons(stringBuilder);
-                            Log.d("","------------------------");
-                            //test
-                            test.append(stringBuilder).append('\n');
-                            test.append("---------------------------------").append('\n');
-                            //test END
+                            lesson = getLessons(stringBuilder);
+                            list.add(lesson);
                             stringBuilder.delete(0, stringBuilder.length());
                             line = temp.substring(temp.indexOf("</table>")+8, temp.length());
                             stringBuilder.append(line).append('\n');
-                            //Log.d(this.getClass().getName(),"***ONE DAY MISSION COMPLETE***");
                         } else {
 							stringBuilder.append(line).append('\n');
 						}
                     }
                 }
                 inputStream.close();
-
-                //Lesson lesson = new Lesson();
-                //ArrayList<Lesson> timetable = new ArrayList<Lesson>();
-                //lesson = getLessons(stringBuilder);
-
-                // return string for put it in the text view
-                //return stringBuilder.toString();
-                return deleteTag(test.toString());
+                return list;
             } catch (IOException e) {
                 Log.d(this.getClass().getName(),"***Smth goes wrong when data was took form internet***");
-                return "ERROR";
+                return null;
             }
         }
 
@@ -240,9 +232,12 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
         }
 
         @Override
-        protected void onPostExecute(String par) {
+        protected void onPostExecute(ArrayList<Lesson> par) {
+            // Add to DB
+            addToDatabase(par);
+            par.clear(); //need or not ???
             EditText text = (EditText) findViewById(R.id.editText2);
-            text.setText(par);
+            text.setText("DONE");
             Toast.makeText(main.this, "All source was got....for now;)", Toast.LENGTH_LONG).show();
         }
 
@@ -260,7 +255,6 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
         }
 
         // Glob var for lesson save/work
-        Lesson lesson = new Lesson();
         String day = "e";
         String number = "e";
 
@@ -276,6 +270,7 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
             Byte td_count = 0;
             Byte lesson_number = 0;
             Boolean rowspan_check = false;
+            Lesson lesson = new Lesson();
 
             for (String s : lines) {
                 line_index++;
@@ -289,7 +284,6 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                 if (s.contains("align=\"center\" valign=\"middle\" class=\"leftcell\">")) {
                     number = deleteTag(s).trim();
                     number = number.replaceAll("[^0-9]", ""); // remove all letters
-                    //System.out.println("NUMBER EXCIST!!!!\n"+s);
                 }
                 // Get lesson
                 if (s.contains("<table")) {
@@ -297,14 +291,12 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                     lesson.setLessonNumber(number);
                 } else if (s.contains("</table")) {
                     table_start = false;
-                    formatLesson(g1w1, g1w2, g2w1, g2w2);
+                    lesson = formatLesson(lesson, g1w1, g1w2, g2w1, g2w2);
                     lesson_number = 0;
-                    System.out.println("day: " + lesson.getDay() + "\nnumber: " + lesson.getLessonNumber()
+                    /*Log.d("","day: " + lesson.getDay() + "\nnumber: " + lesson.getLessonNumber()
                             + "\ng1w1: " + lesson.getGroup1Week1() + "\ng2w1: " + lesson.getGroup2Week1()
-                            + "\ng1w2: " + lesson.getGroup1Week2() + "\ng2w2: " + lesson.getGroup2Week2());
-                    g2w2 = g1w2 = g2w1 = g1w1 = "e";//e - empty
-                    //number = "e";
-                    lesson = lesson.clear();
+                            + "\ng1w2: " + lesson.getGroup1Week2() + "\ng2w2: " + lesson.getGroup2Week2()
+                            + "\n----------------------------------");*/
                     break;
                 }
                 if (table_start) {
@@ -368,10 +360,10 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                     rowspan_check = false;
                 }
             }
-            return null;
+            return lesson;
         }
 
-        private void formatLesson(String g1w1, String g1w2, String g2w1, String g2w2) {
+        private Lesson formatLesson(Lesson lesson, String g1w1, String g1w2, String g2w1, String g2w2) {
             // Odna para
             if (!g1w1.equals(g1w2) && g1w2.equals(g2w1) && g2w1.equals(g2w2) && g2w2.equals("e")) {
                 g1w2 = g2w1 = g2w2 = g1w1;
@@ -379,7 +371,7 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);
                 lesson.setGroup2Week2(g2w2);
-                return;
+                return lesson;
             }
             // Chyselnuk i znamennuk:
             // Chyselnuk
@@ -390,7 +382,7 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);
                 lesson.setGroup2Week2(g2w2);
-                return;
+                return lesson;
             }
             // Znamennuk
             if (!g1w1.equals(g1w2) && !g1w2.equals(g2w1) && g1w1.equals("") && g2w1.equals(g2w2) && g2w2.equals("e")) {
@@ -400,7 +392,7 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);
                 lesson.setGroup2Week2(g2w2);
-                return;
+                return lesson;
             }
             // Razom
             if (!g1w1.equals(g1w2) && !g1w1.equals("") && !g1w2.equals("") && g2w1.equals(g2w2) && g2w2.equals("e")) {
@@ -410,7 +402,7 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);
                 lesson.setGroup2Week2(g2w2);
-                return;
+                return lesson;
             }
             // Dvi pidgypu:
             // Persha
@@ -421,7 +413,7 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);
                 lesson.setGroup2Week2(g2w2);
-                return;
+                return lesson;
             }
             // Dryga
             if (!g2w1.equals("") && !g2w1.equals("e") && g1w2.equals(g2w2) && g2w2.equals("e") && g1w1.equals("")) {
@@ -431,7 +423,7 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);
                 lesson.setGroup2Week2(g2w2);
-                return;
+                return lesson;
             }
             // Razom
             if (g1w2.equals(g2w2) && g2w2.equals("e") && !g1w1.equals("e") && !g1w1.equals("") && !g2w1.equals("e") && !g2w1.equals("")) {
@@ -441,7 +433,7 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);
                 lesson.setGroup2Week2(g2w2);
-                return;
+                return lesson;
             }
             // from 3(g2w1) to 1
             if (!g2w1.equals("") && !g2w1.equals("e") && g1w1.equals("") && g1w2.equals(g1w1) && g2w2.equals(g1w2)) {
@@ -451,13 +443,14 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                 lesson.setGroup1Week2(g1w2);
                 lesson.setGroup2Week1(g2w1);
                 lesson.setGroup2Week2(g2w2);
-                return;
+                return lesson;
             }
             // Default
             lesson.setGroup1Week1(g1w1);
             lesson.setGroup1Week2(g1w2);
             lesson.setGroup2Week1(g2w1);
             lesson.setGroup2Week2(g2w2);
+            return lesson;
         }
     }
 }

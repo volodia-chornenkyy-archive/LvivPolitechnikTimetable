@@ -8,6 +8,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +31,10 @@ public class DBAdapter extends SQLiteOpenHelper{
     private static final String DATABASE_NAME = "LvivPolitechnikTimetable.db";
     private static final String DATABASE_TABLE = "currentTimetable";
     private static final int DATABASE_VERSION = 1;
+    private static final String DATABASE_CREATE = "CREATE TABLE " + DATABASE_TABLE + " ("
+            + KEY_ROWID + " INTEGER PRIMARY KEY," + KEY_DAY + " TEXT,"
+            + KEY_LESS_NUM + " TEXT," + KEY_G1W1 + " TEXT,"
+            + KEY_G2W1 + " TEXT," + KEY_G1W2 + " TEXT," + KEY_G2W2 + " TEXT)";
 
     public DBAdapter(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -36,23 +42,26 @@ public class DBAdapter extends SQLiteOpenHelper{
 
     @Override
     public void onCreate(SQLiteDatabase db){
-        String DATABASE_CREATE =
-                "CREATE TABLE " + DATABASE_TABLE + " ("
-                        + KEY_ROWID + " INTEGER PRIMARY KEY," + KEY_DAY + " TEXT,"
-                        + KEY_LESS_NUM + " TEXT," + KEY_G1W1 + " TEXT,"
-                        + KEY_G2W1 + " TEXT," + KEY_G1W2 + " TEXT," + KEY_G2W2 + " TEXT)";
         db.execSQL(DATABASE_CREATE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
-        db.execSQL("DROP TABLE IF EXISTS" + DATABASE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE);
         onCreate(db);
+    }
+
+    public void clear(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE);
+        Log.d(getClass().toString(),"Drop database");
+        onCreate(db);
+        Log.d(getClass().toString(),"Create database");
+        db.close();
     }
 
     // Adding new contact
     public void addLesson(Lesson lesson) {
-        SQLiteDatabase db = this.getWritableDatabase();
         ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_DAY, lesson.getDay());
         initialValues.put(KEY_LESS_NUM, lesson.getLessonNumber());
@@ -60,8 +69,9 @@ public class DBAdapter extends SQLiteOpenHelper{
         initialValues.put(KEY_G2W1, lesson.getGroup2Week1());
         initialValues.put(KEY_G1W2, lesson.getGroup1Week2());
         initialValues.put(KEY_G2W2, lesson.getGroup2Week2());
+        SQLiteDatabase db = this.getWritableDatabase();
         db.insert(DATABASE_TABLE, null, initialValues);
-        db.close(); // Closing database connection
+        db.close();
     }
 
     // Getting single contact
@@ -135,89 +145,4 @@ public class DBAdapter extends SQLiteOpenHelper{
                 new String[] { String.valueOf(contact.getID()) });
         db.close();
     }
-    /*
-    //---opens the database---
-    public DBAdapter open() throws SQLException{
-        db = DBAdapter.getWritableDatabase();
-        return this;
-    }
-
-    //---closes the database---
-    public void close(){
-        DBAdapter.close();
-    }
-
-    //---insert a title into the database---
-    public long insertLesson(String day, String lesson_number, String group1week1, String group2week1,
-                            String group1week2, String group2week2){
-        ContentValues initialValues = new ContentValues();
-        initialValues.put(KEY_DAY, day);
-        initialValues.put(KEY_LESS_NUM, lesson_number);
-        initialValues.put(KEY_G1W1, group1week1);
-        initialValues.put(KEY_G2W1, group2week1);
-        initialValues.put(KEY_G1W2, group1week2);
-        initialValues.put(KEY_G2W2, group2week2);
-        return db.insert(DATABASE_TABLE, null, initialValues);
-    }
-
-    //---deletes a particular title---
-    public boolean deleteTimetable(long rowId){
-        return db.delete(DATABASE_TABLE, KEY_ROWID + "=" + rowId, null) > 0;
-    }
-
-    //---retrieves all the titles---
-    public Cursor getAllLesson(){
-        return db.query(DATABASE_TABLE, new String[] {
-                        KEY_ROWID,
-                        KEY_DAY,
-                        KEY_LESS_NUM,
-                        KEY_G1W1,
-                        KEY_G2W1,
-                        KEY_G1W2,
-                        KEY_G2W2},
-                null,
-                null,
-                null,
-                null,
-                null,
-                null);
-    }
-
-    //---retrieves a particular title---
-    public Cursor getLesson(long rowId) throws SQLException{
-        Cursor mCursor =
-                db.query(true, DATABASE_TABLE, new String[] {
-                                KEY_ROWID,
-                                KEY_DAY,
-                                KEY_LESS_NUM,
-                                KEY_G1W1,
-                                KEY_G2W1,
-                                KEY_G1W2,
-                                KEY_G2W2
-                        },
-                        KEY_ROWID + "=" + rowId,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null);
-        if (mCursor != null) {
-            mCursor.moveToFirst();
-        }
-        return mCursor;
-    }
-
-    //---updates a title---
-    public boolean updateLesson(long rowId, String day, String lesson_number, String group1week1,
-                               String group2week1, String group1week2, String group2week2){
-        ContentValues args = new ContentValues();
-        args.put(KEY_DAY, day);
-        args.put(KEY_LESS_NUM, lesson_number);
-        args.put(KEY_G1W1, group1week1);
-        args.put(KEY_G2W1, group2week1);
-        args.put(KEY_G1W2, group1week2);
-        args.put(KEY_G2W2, group2week2);
-        return db.update(DATABASE_TABLE, args,
-                KEY_ROWID + "=" + rowId, null) > 0;
-    }*/
 }

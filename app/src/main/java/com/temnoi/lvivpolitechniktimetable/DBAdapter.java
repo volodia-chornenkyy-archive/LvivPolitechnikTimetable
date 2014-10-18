@@ -54,9 +54,7 @@ public class DBAdapter extends SQLiteOpenHelper{
     public void clear(){
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE);
-        Log.d(getClass().toString(),"Drop database");
         onCreate(db);
-        Log.d(getClass().toString(),"Create database");
         db.close();
     }
 

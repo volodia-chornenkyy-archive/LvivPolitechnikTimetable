@@ -9,6 +9,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,8 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class main extends ActionBarActivity implements ActionBar.OnNavigationListener {
-
+public class main extends ActionBarActivity {
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
     String url_politeh = "http://lp.edu.ua/node/40?inst=8&group=7009&semestr=0&semest_part=1";
 
@@ -43,25 +43,6 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        // Set up the action bar to show a dropdown list.
-        final ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayShowTitleEnabled(false);
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-
-        // Set up the dropdown list navigation in the action bar.
-        actionBar.setListNavigationCallbacks(
-                // Specify a SpinnerAdapter to populate the dropdown list.
-                new ArrayAdapter<String>(
-                        actionBar.getThemedContext(),
-                        android.R.layout.simple_list_item_1,
-                        android.R.id.text1,
-                        new String[]{
-                                getString(R.string.title_section1),
-                                getString(R.string.title_section2),
-                                getString(R.string.title_section3),
-                        }),
-                this);
     }
 
     public void DisplayTitle(Cursor c) {
@@ -71,6 +52,7 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                 "PUBLISHER: " + c.getString(3), Toast.LENGTH_LONG).show();
     }
 
+    // WTF????
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         // Restore the previously serialized current dropdown position.
@@ -79,14 +61,6 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                     savedInstanceState.getInt(STATE_SELECTED_NAVIGATION_ITEM));
         }
     }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        // Serialize the current dropdown position.
-        outState.putInt(STATE_SELECTED_NAVIGATION_ITEM,
-                getSupportActionBar().getSelectedNavigationIndex());
-    }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -100,59 +74,15 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
+        switch (item.getItemId()){
+            case R.id.action_settings :
+                setContentView(R.layout.settings);
+                return true;
+            case R.id.action_refresh:
+                new Timetable().execute();
+                return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onNavigationItemSelected(int position, long id) {
-        // When the given dropdown item is selected, show its contents in the
-        // container view.
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
-                .commit();
-        return true;
-    }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            return rootView;
-        }
-    }
-
-    // btn click method; in future rename to Refresh
-    public void getText(View view) {
-        new Timetable().execute();
     }
 
     public void addToDatabase(ArrayList<Lesson> lesson) {
@@ -236,8 +166,6 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
             // Add to DB
             addToDatabase(par);
             par.clear(); //need or not ???
-            EditText text = (EditText) findViewById(R.id.editText2);
-            text.setText("DONE");
             Toast.makeText(main.this, "All source was got....for now;)", Toast.LENGTH_LONG).show();
         }
 
@@ -293,10 +221,6 @@ public class main extends ActionBarActivity implements ActionBar.OnNavigationLis
                     table_start = false;
                     lesson = formatLesson(lesson, g1w1, g1w2, g2w1, g2w2);
                     lesson_number = 0;
-                    /*Log.d("","day: " + lesson.getDay() + "\nnumber: " + lesson.getLessonNumber()
-                            + "\ng1w1: " + lesson.getGroup1Week1() + "\ng2w1: " + lesson.getGroup2Week1()
-                            + "\ng1w2: " + lesson.getGroup1Week2() + "\ng2w2: " + lesson.getGroup2Week2()
-                            + "\n----------------------------------");*/
                     break;
                 }
                 if (table_start) {

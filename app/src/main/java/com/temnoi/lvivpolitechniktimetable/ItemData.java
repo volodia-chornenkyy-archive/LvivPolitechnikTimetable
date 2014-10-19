@@ -5,19 +5,26 @@ package com.temnoi.lvivpolitechniktimetable;
  */
 public class ItemData {
     private String title;
-    private int imageUrl;
+    private String number;
 
-    public ItemData(String title,int imageUrl){
+    public ItemData(String title,String number){
 
         this.title = title;
-        this.imageUrl = imageUrl;
+        this.number = number;
     }
 
     public String getTitle(){
         return title;
     }
 
-    public int getImageUrl(){
-        return imageUrl;
+    public String  getImageUrl(){
+        return number;
+    }
+
+    public void setTitle(String title){
+        this.title = title;
+    }
+    public void setImageUrl(String number){
+        this.number = number;
     }
 }

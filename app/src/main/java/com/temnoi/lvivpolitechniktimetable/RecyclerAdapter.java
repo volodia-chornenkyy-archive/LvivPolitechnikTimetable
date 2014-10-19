@@ -36,7 +36,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         // - replace the contents of the view with that itemsData
 
         viewHolder.txtViewTitle.setText(itemsData[position].getTitle());
-        viewHolder.imgViewIcon.setImageResource(itemsData[position].getImageUrl());
+        viewHolder.imgViewIcon.setText(itemsData[position].getImageUrl());
 
 
     }
@@ -45,12 +45,12 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
         public TextView txtViewTitle;
-        public ImageView imgViewIcon;
+        public TextView imgViewIcon;
 
         public ViewHolder(View itemLayoutView) {
             super(itemLayoutView);
             txtViewTitle = (TextView) itemLayoutView.findViewById(R.id.item_title);
-            imgViewIcon = (ImageView) itemLayoutView.findViewById(R.id.item_icon);
+            imgViewIcon = (TextView) itemLayoutView.findViewById(R.id.item_icon);
         }
     }
 

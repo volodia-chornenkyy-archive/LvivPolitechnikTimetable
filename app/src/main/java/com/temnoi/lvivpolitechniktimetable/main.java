@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class main extends ActionBarActivity {
@@ -72,17 +73,9 @@ public class main extends ActionBarActivity {
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         recyclerView.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL_LIST));
         // this is data fro recycler view
-        ItemData itemsData[] = { new ItemData("Help",R.drawable.ic_launcher),
-                new ItemData("Delete",R.drawable.ic_launcher),
-                new ItemData("Cloud",R.drawable.ic_launcher),
-                new ItemData("Favorite",R.drawable.ic_launcher),
-                new ItemData("Like",R.drawable.ic_launcher),
-                new ItemData("Delete",R.drawable.ic_launcher),
-                new ItemData("Cloud",R.drawable.ic_launcher),
-                new ItemData("Favorite",R.drawable.ic_launcher),
-                new ItemData("Like",R.drawable.ic_launcher),
-                new ItemData("Rating",R.drawable.ic_launcher)};
-
+        //ItemData itemsData[] = { new ItemData("Help","1")};
+        ItemData itemsData[] = new ItemData[30];
+        itemsData = readFromDatabase(itemsData);
         // 2. set layoutManger
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         // 3. create an adapter
@@ -145,13 +138,25 @@ public class main extends ActionBarActivity {
                     && !lesson.get(i).getGroup2Week2().equals("e"))
             dbAdapter.addLesson(lesson.get(i));
         }
-
-        /*List<Lesson> contacts = dbAdapter.getAllContacts();
-        for (Lesson cn : contacts) {
-            String log = "Id: " + cn.getID() + " ,Name: " + cn.getDay() + " ,Phone: " + cn.getGroup1Week1();
-        }*/
-
+        dbAdapter.close();
         Toast.makeText(main.this, "Work with DB complete", Toast.LENGTH_SHORT).show();
+    }
+
+    public ItemData[] readFromDatabase(ItemData itemData[]){
+        DBAdapter dbAdapter = new DBAdapter(this);
+        List<Lesson> lessonList = dbAdapter.getAllContacts();
+        int i = 0;
+        for (Lesson cn : lessonList) {
+            if (cn.getDay().equals("Пн")) {
+                Log.d("Read from DB: ", cn.getLessonNumber()+"***"+cn.getGroup1Week1());
+                itemData[i] = new ItemData(cn.getGroup1Week1(),cn.getLessonNumber());
+                i++;
+            }
+        }
+        dbAdapter.close();
+        ItemData[] temp = new ItemData[i];
+        System.arraycopy(itemData,0,temp,0,temp.length);
+        return temp;
     }
 
     /*Class for working with source of html page with timetable*/

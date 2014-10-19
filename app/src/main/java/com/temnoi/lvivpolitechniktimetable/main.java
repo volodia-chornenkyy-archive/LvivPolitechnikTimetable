@@ -1,20 +1,27 @@
 package com.temnoi.lvivpolitechniktimetable;
 
+import android.app.ActionBar;
+import android.app.Activity;
+import android.content.res.Resources;
 import android.database.Cursor;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.text.Html;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
-import android.view.LayoutInflater;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.http.HttpEntity;
@@ -28,21 +35,62 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.List;
 
 
 public class main extends ActionBarActivity {
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
     String url_politeh = "http://lp.edu.ua/node/40?inst=8&group=7009&semestr=0&semest_part=1";
-
-    public static final String[] DAYS = new String[]{
-            "Пн", "Вт", "Ср", "Чт", "Пт"
+    public static final String[] UNIVERSITY = new String[]{
+        "ІАРХ*1", "ІБІД*2", "ІГДГ*3", "ІГСН*4", "ІЕПТ*19", "ІЕСК*6", "ІІМТ*7", "ІКНІ*8",
+            "ІКТА*9", "ІМФН*10", "ІНЕМ*5", "ІНПП*18", "ІТРЕ*11", "ІХХТ*12"
     };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //getSupportActionBar().setDisplayShowHomeEnabled(false);
         setContentView(R.layout.activity_main);
+        // Change color of action bar
+        android.support.v7.app.ActionBar actionBar = getSupportActionBar();
+        assert actionBar != null;
+        actionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#29b6f6")));
+
+        // Add floating action bar
+        FloatingActionButton fabButton = new FloatingActionButton.Builder(this)
+                .withDrawable(getResources().getDrawable(R.drawable.ic_action_refresh_black))
+                .withButtonColor(Color.parseColor("#eeff41"))
+                .withGravity(Gravity.BOTTOM | Gravity.RIGHT)
+                .withMargins(0, 0, 32, 32)
+                .create();
+        fabButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new Timetable().execute();            }
+        });
+
+        // Create RecyclerView
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        recyclerView.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL_LIST));
+        // this is data fro recycler view
+        ItemData itemsData[] = { new ItemData("Help",R.drawable.ic_launcher),
+                new ItemData("Delete",R.drawable.ic_launcher),
+                new ItemData("Cloud",R.drawable.ic_launcher),
+                new ItemData("Favorite",R.drawable.ic_launcher),
+                new ItemData("Like",R.drawable.ic_launcher),
+                new ItemData("Delete",R.drawable.ic_launcher),
+                new ItemData("Cloud",R.drawable.ic_launcher),
+                new ItemData("Favorite",R.drawable.ic_launcher),
+                new ItemData("Like",R.drawable.ic_launcher),
+                new ItemData("Rating",R.drawable.ic_launcher)};
+
+        // 2. set layoutManger
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        // 3. create an adapter
+        RecyclerAdapter mAdapter = new RecyclerAdapter(itemsData);
+        // 4. set adapter
+        recyclerView.setAdapter(mAdapter);
+        // 5. set item animator to DefaultAnimator
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
     }
 
     public void DisplayTitle(Cursor c) {
@@ -65,7 +113,8 @@ public class main extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main, menu);
         return true;
     }
 
@@ -75,7 +124,7 @@ public class main extends ActionBarActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()){
-            case R.id.action_settings :
+            case R.id.action_settings:
                 setContentView(R.layout.settings);
                 return true;
             case R.id.action_refresh:
@@ -121,19 +170,25 @@ public class main extends ActionBarActivity {
                 // Variables
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8);
                 StringBuilder stringBuilder = new StringBuilder();
-                String line = null;
-                Boolean read_flag = false;
+                String line;
+                Boolean lesson_read_flag = false;
+                Boolean group_read_flag = false;
                 Lesson lesson = new Lesson();
                 ArrayList<Lesson> list = new ArrayList<Lesson>();
 
                 // Work with source
                 while ((line = bufferedReader.readLine()) != null) {
-                    if ((!read_flag) && (line.contains("<td align=\"center\" valign=\"middle\" rowspan=\"4\" class=\"leftcell\">Пн"))) {
-                        read_flag = true;
-                    } else if ((read_flag) && (line.equals("<div style=\"padding-top:20px;\"> Останнє оновлення: 17 вересня 2014 р. о 18:35</div></div>"))) {
-                        read_flag = false;
+                    // Get groups
+                    if (line.contains("<option value")&&!line.contains("День</th><th class=\"zagol2\">Пара")){
+
                     }
-                    if (read_flag) {
+                    // Get lessons
+                    if ((!lesson_read_flag) && (line.contains("<td align=\"center\" valign=\"middle\" rowspan=\"4\" class=\"leftcell\">Пн"))) {
+                        lesson_read_flag = true;
+                    } else if ((lesson_read_flag) && (line.equals("<div style=\"padding-top:20px;\"> Останнє оновлення: 17 вересня 2014 р. о 18:35</div></div>"))) {
+                        lesson_read_flag = false;
+                    }
+                    if (lesson_read_flag) {
                         String temp = line;
                         if (line.contains("</table")){
                             line = line.substring(0,line.indexOf("</table>")+8);

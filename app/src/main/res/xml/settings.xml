@@ -3,10 +3,15 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
         android:title="@string/pref_user_setting">
+        <ListPreference
+            android:key="university"
+            android:entries="@array/university"
+            android:entryValues="@array/university_values"
+            android:title="@string/pref_univer"/>
         <EditTextPreference
-            android:title="title"
+            android:title="GROUP/UNIVERSITY choice"
             android:summary="summary"
-            android:key="user_name"/>
+            android:key="group"/>
         </PreferenceCategory>
 
     <PreferenceCategory
@@ -14,13 +19,7 @@
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="update"
-            android:summary="check_summary"
-            android:title="check_title"/>
-        <ListPreference
-            android:key="list"
-            android:entries="@array/university"
-            android:summary="list_summary"
-            android:entryValues="@array/university2"
-            android:title="list_title"/>
+            android:id="@+id/pref_update"
+            android:title="@string/pref_update_on_start"/>
         </PreferenceCategory>
 </PreferenceScreen>

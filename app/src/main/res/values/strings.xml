@@ -5,6 +5,19 @@
     <string name="action_settings">Налаштування</string>
     <string name="action_refresh">Оновити</string>
 
+    <string name="title_section1">Понеділок</string>
+    <string name="title_section2">Вівторок</string>
+    <string name="title_section3">Середа</string>
+    <string name="title_section4">Четвер</string>
+    <string name="title_section5">П\'ятниця</string>
+
+    <string name="navigation_drawer_open"></string>
+    <string name="navigation_drawer_close"></string>
+
+    <string name="pref_user_setting">Користувач</string>
+    <string name="pref_update_setting">Оновлення</string>
+    <string name="pref_update_on_start">Оновляти при запуску програми</string>
+    <string name="pref_univer">Університет</string>
     <string-array name="university">
         <item>ІАРХ</item>
         <item>ІБІД</item>
@@ -21,21 +34,20 @@
         <item>ІТРЕ</item>
         <item>ІХХТ</item>
     </string-array>
-    <string-array name="university2">
+    <string-array name="university_values">
         <item>1</item>
         <item>2</item>
         <item>3</item>
+        <item>4</item>
+        <item>19</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>5</item>
+        <item>18</item>
+        <item>11</item>
+        <item>12</item>
     </string-array>
-
-    <string name="title_section1">Понеділок</string>
-    <string name="title_section2">Вівторок</string>
-    <string name="title_section3">Середа</string>
-    <string name="title_section4">Четвер</string>
-    <string name="title_section5">П\'ятниця</string>
-
-    <string name="navigation_drawer_open"></string>
-    <string name="navigation_drawer_close"></string>
-
-    <string name="pref_user_setting">Користувач</string>
-    <string name="pref_update_setting">Оновлення</string>
 </resources>

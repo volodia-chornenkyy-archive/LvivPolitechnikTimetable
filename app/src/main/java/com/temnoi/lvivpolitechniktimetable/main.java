@@ -21,6 +21,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -58,10 +60,6 @@ public class main extends ActionBarActivity
      */
     private CharSequence mTitle;
 
-    LinearLayout linearLayout;
-    TextView number;
-    int wrap_content = LinearLayout.LayoutParams.WRAP_CONTENT;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,6 +89,11 @@ public class main extends ActionBarActivity
                 new TimetableRenew().execute();
             }
         });
+
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        if (settings.getBoolean("update",true)) {
+            new TimetableRenew().execute();
+        }
     }
 
     @Override
@@ -196,18 +199,14 @@ public class main extends ActionBarActivity
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()){
             case R.id.action_settings:
-                //showSettings();
                 Intent i = new Intent(getApplicationContext(),UserSettings.class);
                 startActivityForResult(i,1);
-                return true;
-            case R.id.action_refresh:
-                new TimetableRenew().execute();
                 return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
+    /*@Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode,resultCode,data);
         if (requestCode==1)
@@ -216,14 +215,15 @@ public class main extends ActionBarActivity
 
     public void showSettings(){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences settings = getSharedPreferences("MyPrefsFile",0);
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("\nUser name: ").append(preferences.getString("user_name","NULL"));
         stringBuilder.append("\nCheckBox: ").append(preferences.getBoolean("update", true));
         stringBuilder.append("\nList: ").append(preferences.getString("list","NULL"));
-        TextView settingsText = (TextView)findViewById(R.id.textView);
-        settingsText.setText(stringBuilder.toString());
+        TextView textView = (TextView)findViewById(R.id.textView);
+        textView.setText(stringBuilder.toString());
     }
-
+*/
 
     public void addToDatabase(ArrayList<Lesson> lesson) {
         DBAdapter dbAdapter = new DBAdapter(this);
@@ -240,64 +240,6 @@ public class main extends ActionBarActivity
         Toast.makeText(main.this, "Work with DB complete", Toast.LENGTH_SHORT).show();
     }
 
-    public void readFromDatabase(){
-        DBAdapter dbAdapter = new DBAdapter(this);
-        List<Lesson> lessonList = dbAdapter.getAllContacts();
-        int i = 0;
-        String day_name = "";
-        switch (current_day){
-            case 1:
-                day_name = "Пн";
-                break;
-            case 2:
-                day_name = "Вт";
-                break;
-            case 3:
-                day_name = "Ср";
-                break;
-            case 4:
-                day_name = "Чт";
-                break;
-            case 5:
-                day_name = "Пт";
-                break;
-        }
-        for (Lesson cn : lessonList) {
-            if (cn.getDay().equals(day_name)) {
-                if (cn.getGroup1Week1().equals("")) {
-                    continue;
-                }
-                switch (i){
-                    case 0:
-                        TextView textView1 = (TextView)findViewById(R.id.text_title1);
-                        textView1.setText(cn.getGroup1Week1());
-                        TextView textNumber1 = (TextView)findViewById(R.id.text_number1);
-                        textNumber1.setText(cn.getLessonNumber()+" ");
-                        break;
-                    case 1:
-                        TextView textView2 = (TextView)findViewById(R.id.text_title2);
-                        textView2.setText(cn.getGroup1Week1());
-                        TextView textNumber2 = (TextView)findViewById(R.id.text_number2);
-                        textNumber2.setText(cn.getLessonNumber()+" ");
-                        break;
-                    case 2:
-                        TextView textView3 = (TextView)findViewById(R.id.text_title3);
-                        textView3.setText(cn.getGroup1Week1());
-                        TextView textNumber3 = (TextView)findViewById(R.id.text_number3);
-                        textNumber3.setText(cn.getLessonNumber()+" ");
-                        break;
-                    case 3:
-                        TextView textView4 = (TextView)findViewById(R.id.text_title4);
-                        textView4.setText(cn.getGroup1Week1());
-                        TextView textNumber4 = (TextView)findViewById(R.id.text_number4);
-                        textNumber4.setText(cn.getLessonNumber()+" ");
-                        break;
-                }
-                i++;
-            }
-        }
-    }
-
     class TimetableRefresh extends AsyncTask<Void, Integer, Void>{
         @Override
         protected Void doInBackground(Void... params){
@@ -312,6 +254,64 @@ public class main extends ActionBarActivity
         @Override
         protected void onPostExecute(Void p){
             readFromDatabase();
+        }
+
+        private void readFromDatabase(){
+            DBAdapter dbAdapter = new DBAdapter(main.this);
+            List<Lesson> lessonList = dbAdapter.getAllContacts();
+            int i = 0;
+            String day_name = "";
+            switch (current_day){
+                case 1:
+                    day_name = "Пн";
+                    break;
+                case 2:
+                    day_name = "Вт";
+                    break;
+                case 3:
+                    day_name = "Ср";
+                    break;
+                case 4:
+                    day_name = "Чт";
+                    break;
+                case 5:
+                    day_name = "Пт";
+                    break;
+            }
+            for (Lesson cn : lessonList) {
+                if (cn.getDay().equals(day_name)) {
+                    if (cn.getGroup1Week1().equals("")) {
+                        continue;
+                    }
+                    switch (i){
+                        case 0:
+                            TextView textView1 = (TextView)findViewById(R.id.text_title1);
+                            textView1.setText(cn.getGroup1Week1());
+                            TextView textNumber1 = (TextView)findViewById(R.id.text_number1);
+                            textNumber1.setText(cn.getLessonNumber()+" ");
+                            break;
+                        case 1:
+                            TextView textView2 = (TextView)findViewById(R.id.text_title2);
+                            textView2.setText(cn.getGroup1Week1());
+                            TextView textNumber2 = (TextView)findViewById(R.id.text_number2);
+                            textNumber2.setText(cn.getLessonNumber()+" ");
+                            break;
+                        case 2:
+                            TextView textView3 = (TextView)findViewById(R.id.text_title3);
+                            textView3.setText(cn.getGroup1Week1());
+                            TextView textNumber3 = (TextView)findViewById(R.id.text_number3);
+                            textNumber3.setText(cn.getLessonNumber()+" ");
+                            break;
+                        case 3:
+                            TextView textView4 = (TextView)findViewById(R.id.text_title4);
+                            textView4.setText(cn.getGroup1Week1());
+                            TextView textNumber4 = (TextView)findViewById(R.id.text_number4);
+                            textNumber4.setText(cn.getLessonNumber()+" ");
+                            break;
+                    }
+                    i++;
+                }
+            }
         }
     }
 
@@ -367,7 +367,6 @@ public class main extends ActionBarActivity
                 inputStream.close();
                 return list;
             } catch (IOException e) {
-                Log.d(this.getClass().getName(),"***Smth goes wrong when data was took form internet***");
                 return null;
             }
         }
@@ -382,7 +381,8 @@ public class main extends ActionBarActivity
             // Add to DB
             addToDatabase(par);
             par.clear(); //need or not ???
-            readFromDatabase();
+
+            new TimetableRefresh().execute();
         }
 
         private String deleteTag(String line){

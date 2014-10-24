@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="@string/pref_user_setting">
+        <EditTextPreference
+            android:title="title"
+            android:summary="summary"
+            android:key="user_name"/>
+        </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_update_setting">
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="update"
+            android:summary="check_summary"
+            android:title="check_title"/>
+        <ListPreference
+            android:key="list"
+            android:entries="@array/university"
+            android:summary="list_summary"
+            android:entryValues="@array/university2"
+            android:title="list_title"/>
+        </PreferenceCategory>
+</PreferenceScreen>

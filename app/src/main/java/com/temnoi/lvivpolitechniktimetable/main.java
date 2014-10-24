@@ -1,11 +1,14 @@
 package com.temnoi.lvivpolitechniktimetable;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
@@ -94,7 +97,8 @@ public class main extends ActionBarActivity
         fabButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new Timetable().execute();            }
+                new Timetable().execute();
+            }
         });
     }
 
@@ -201,7 +205,9 @@ public class main extends ActionBarActivity
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()){
             case R.id.action_settings:
-                setContentView(R.layout.settings);
+                //showSettings();
+                Intent i = new Intent(getApplicationContext(),UserSettings.class);
+                startActivityForResult(i,1);
                 return true;
             case R.id.action_refresh:
                 new Timetable().execute();
@@ -209,6 +215,24 @@ public class main extends ActionBarActivity
         }
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        super.onActivityResult(requestCode,resultCode,data);
+        if (requestCode==1)
+            showSettings();
+    }
+
+    public void showSettings(){
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("\nUser name: ").append(preferences.getString("user_name","NULL"));
+        stringBuilder.append("\nCheckBox: ").append(preferences.getBoolean("update", true));
+        stringBuilder.append("\nList: ").append(preferences.getString("list","NULL"));
+        TextView settingsText = (TextView)findViewById(R.id.textView);
+        settingsText.setText(stringBuilder.toString());
+    }
+
 
     public void addToDatabase(ArrayList<Lesson> lesson) {
         DBAdapter dbAdapter = new DBAdapter(this);

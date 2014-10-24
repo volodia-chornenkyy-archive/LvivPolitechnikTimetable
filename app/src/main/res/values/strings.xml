@@ -21,6 +21,11 @@
         <item>ІТРЕ</item>
         <item>ІХХТ</item>
     </string-array>
+    <string-array name="university2">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
 
     <string name="title_section1">Понеділок</string>
     <string name="title_section2">Вівторок</string>
@@ -30,4 +35,7 @@
 
     <string name="navigation_drawer_open"></string>
     <string name="navigation_drawer_close"></string>
+
+    <string name="pref_user_setting">Користувач</string>
+    <string name="pref_update_setting">Оновлення</string>
 </resources>

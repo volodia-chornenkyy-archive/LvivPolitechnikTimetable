@@ -3,7 +3,6 @@ package com.temnoi.lvivpolitechniktimetable;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
@@ -14,10 +13,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -26,9 +21,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,14 +30,12 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 
@@ -97,7 +88,7 @@ public class main extends ActionBarActivity
         fabButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new Timetable().execute();
+                new TimetableRenew().execute();
             }
         });
     }
@@ -130,7 +121,7 @@ public class main extends ActionBarActivity
                 break;
         }
         current_day = number;
-        new Timetable().execute();
+        new TimetableRefresh().execute();
     }
 
     public void restoreActionBar() {
@@ -210,7 +201,7 @@ public class main extends ActionBarActivity
                 startActivityForResult(i,1);
                 return true;
             case R.id.action_refresh:
-                new Timetable().execute();
+                new TimetableRenew().execute();
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -307,8 +298,25 @@ public class main extends ActionBarActivity
         }
     }
 
+    class TimetableRefresh extends AsyncTask<Void, Integer, Void>{
+        @Override
+        protected Void doInBackground(Void... params){
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values ){
+
+        }
+
+        @Override
+        protected void onPostExecute(Void p){
+            readFromDatabase();
+        }
+    }
+
     /*Class for working with source of html page with timetable*/
-    class Timetable extends AsyncTask<Void, Integer, ArrayList<Lesson>> {
+    class TimetableRenew extends AsyncTask<Void, Integer, ArrayList<Lesson>> {
         @Override
         protected ArrayList<Lesson> doInBackground(Void... params) {
             //Get source of html-page from its source code

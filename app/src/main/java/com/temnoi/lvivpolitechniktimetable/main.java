@@ -1,26 +1,31 @@
 package com.temnoi.lvivpolitechniktimetable;
 
-import android.app.ActionBar;
 import android.app.Activity;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Html;
-import android.text.SpannableString;
-import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,33 +34,56 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 
-public class main extends ActionBarActivity {
+public class main extends ActionBarActivity
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
     String url_politeh = "http://lp.edu.ua/node/40?inst=8&group=7009&semestr=0&semest_part=1";
     public static final String[] UNIVERSITY = new String[]{
         "ІАРХ*1", "ІБІД*2", "ІГДГ*3", "ІГСН*4", "ІЕПТ*19", "ІЕСК*6", "ІІМТ*7", "ІКНІ*8",
             "ІКТА*9", "ІМФН*10", "ІНЕМ*5", "ІНПП*18", "ІТРЕ*11", "ІХХТ*12"
     };
+    private int current_day;
+    /**
+     * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
+     */
+    private NavigationDrawerFragment mNavigationDrawerFragment;
+
+    /**
+     * Used to store the last screen title. For use in {@link #restoreActionBar()}.
+     */
+    private CharSequence mTitle;
+
+    LinearLayout linearLayout;
+    TextView number;
+    int wrap_content = LinearLayout.LayoutParams.WRAP_CONTENT;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //getSupportActionBar().setDisplayShowHomeEnabled(false);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_my);
+        mNavigationDrawerFragment = (NavigationDrawerFragment)
+                getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
+        mTitle = getTitle();
+        // Set up the drawer.
+        mNavigationDrawerFragment.setUp(
+                R.id.navigation_drawer,
+                (DrawerLayout) findViewById(R.id.drawer_layout));
         // Change color of action bar
         android.support.v7.app.ActionBar actionBar = getSupportActionBar();
         assert actionBar != null;
         actionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#29b6f6")));
-
         // Add floating action bar
         FloatingActionButton fabButton = new FloatingActionButton.Builder(this)
                 .withDrawable(getResources().getDrawable(R.drawable.ic_action_refresh_black))
@@ -68,29 +96,83 @@ public class main extends ActionBarActivity {
             public void onClick(View v) {
                 new Timetable().execute();            }
         });
-
-        // Create RecyclerView
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        recyclerView.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL_LIST));
-        // this is data fro recycler view
-        //ItemData itemsData[] = { new ItemData("Help","1")};
-        ItemData itemsData[] = new ItemData[30];
-        itemsData = readFromDatabase(itemsData);
-        // 2. set layoutManger
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        // 3. create an adapter
-        RecyclerAdapter mAdapter = new RecyclerAdapter(itemsData);
-        // 4. set adapter
-        recyclerView.setAdapter(mAdapter);
-        // 5. set item animator to DefaultAnimator
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
     }
 
-    public void DisplayTitle(Cursor c) {
-        Toast.makeText(this, "id: " + c.getString(0) + "\n" +
-                "ISBN: " + c.getString(1) + "\n" +
-                "TITLE: " + c.getString(2) + "\n" +
-                "PUBLISHER: " + c.getString(3), Toast.LENGTH_LONG).show();
+    @Override
+    public void onNavigationDrawerItemSelected(int position) {
+        // update the my content by replacing fragments
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
+                .commit();
+    }
+
+    public void onSectionAttached(int number) {
+        switch (number) {
+            case 1:
+                mTitle = getString(R.string.title_section1);
+                break;
+            case 2:
+                mTitle = getString(R.string.title_section2);
+                break;
+            case 3:
+                mTitle = getString(R.string.title_section3);
+                break;
+            case 4:
+                mTitle = getString(R.string.title_section4);
+                break;
+            case 5:
+                mTitle = getString(R.string.title_section5);
+                break;
+        }
+        current_day = number;
+        new Timetable().execute();
+    }
+
+    public void restoreActionBar() {
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+        actionBar.setDisplayShowTitleEnabled(true);
+        actionBar.setTitle(mTitle);
+    }
+    /**
+     * A placeholder fragment containing a simple view.
+     */
+    public static class PlaceholderFragment extends Fragment {
+        /**
+         * The fragment argument representing the section number for this
+         * fragment.
+         */
+        private static final String ARG_SECTION_NUMBER = "section_number";
+
+        /**
+         * Returns a new instance of this fragment for the given section
+         * number.
+         */
+        public static PlaceholderFragment newInstance(int sectionNumber) {
+            PlaceholderFragment fragment = new PlaceholderFragment();
+            Bundle args = new Bundle();
+            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+            fragment.setArguments(args);
+            return fragment;
+        }
+
+        public PlaceholderFragment() {
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            View rootView = inflater.inflate(R.layout.fragment_my, container, false);
+            return rootView;
+        }
+
+        @Override
+        public void onAttach(Activity activity) {
+            super.onAttach(activity);
+            ((main) activity).onSectionAttached(
+                    getArguments().getInt(ARG_SECTION_NUMBER));
+        }
     }
 
     // WTF????
@@ -107,7 +189,8 @@ public class main extends ActionBarActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main, menu);
+        inflater.inflate(R.menu.my, menu);
+        restoreActionBar();
         return true;
     }
 
@@ -142,21 +225,62 @@ public class main extends ActionBarActivity {
         Toast.makeText(main.this, "Work with DB complete", Toast.LENGTH_SHORT).show();
     }
 
-    public ItemData[] readFromDatabase(ItemData itemData[]){
+    public void readFromDatabase(){
         DBAdapter dbAdapter = new DBAdapter(this);
         List<Lesson> lessonList = dbAdapter.getAllContacts();
         int i = 0;
+        String day_name = "";
+        switch (current_day){
+            case 1:
+                day_name = "Пн";
+                break;
+            case 2:
+                day_name = "Вт";
+                break;
+            case 3:
+                day_name = "Ср";
+                break;
+            case 4:
+                day_name = "Чт";
+                break;
+            case 5:
+                day_name = "Пт";
+                break;
+        }
         for (Lesson cn : lessonList) {
-            if (cn.getDay().equals("Пн")) {
-                Log.d("Read from DB: ", cn.getLessonNumber()+"***"+cn.getGroup1Week1());
-                itemData[i] = new ItemData(cn.getGroup1Week1(),cn.getLessonNumber());
+            if (cn.getDay().equals(day_name)) {
+                if (cn.getGroup1Week1().equals("")) {
+                    continue;
+                }
+                switch (i){
+                    case 0:
+                        TextView textView1 = (TextView)findViewById(R.id.text_title1);
+                        textView1.setText(cn.getGroup1Week1());
+                        TextView textNumber1 = (TextView)findViewById(R.id.text_number1);
+                        textNumber1.setText(cn.getLessonNumber()+" ");
+                        break;
+                    case 1:
+                        TextView textView2 = (TextView)findViewById(R.id.text_title2);
+                        textView2.setText(cn.getGroup1Week1());
+                        TextView textNumber2 = (TextView)findViewById(R.id.text_number2);
+                        textNumber2.setText(cn.getLessonNumber()+" ");
+                        break;
+                    case 2:
+                        TextView textView3 = (TextView)findViewById(R.id.text_title3);
+                        textView3.setText(cn.getGroup1Week1());
+                        TextView textNumber3 = (TextView)findViewById(R.id.text_number3);
+                        textNumber3.setText(cn.getLessonNumber()+" ");
+                        break;
+                    case 3:
+                        TextView textView4 = (TextView)findViewById(R.id.text_title4);
+                        textView4.setText(cn.getGroup1Week1());
+                        TextView textNumber4 = (TextView)findViewById(R.id.text_number4);
+                        textNumber4.setText(cn.getLessonNumber()+" ");
+                        break;
+                }
                 i++;
             }
         }
-        dbAdapter.close();
-        ItemData[] temp = new ItemData[i];
-        System.arraycopy(itemData,0,temp,0,temp.length);
-        return temp;
     }
 
     /*Class for working with source of html page with timetable*/
@@ -226,10 +350,10 @@ public class main extends ActionBarActivity {
             // Add to DB
             addToDatabase(par);
             par.clear(); //need or not ???
-            Toast.makeText(main.this, "All source was got....for now;)", Toast.LENGTH_LONG).show();
+            readFromDatabase();
         }
 
-        private String deleteTag(String line) {
+        private String deleteTag(String line){
             if ((line.indexOf('>') - line.indexOf('<')) > 0) {
                 int start_index = line.indexOf('<');
                 int finish_index = line.indexOf('>') + 1;

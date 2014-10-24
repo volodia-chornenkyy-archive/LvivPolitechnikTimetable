@@ -21,4 +21,13 @@
         <item>ІТРЕ</item>
         <item>ІХХТ</item>
     </string-array>
+
+    <string name="title_section1">Понеділок</string>
+    <string name="title_section2">Вівторок</string>
+    <string name="title_section3">Середа</string>
+    <string name="title_section4">Четвер</string>
+    <string name="title_section5">П\'ятниця</string>
+
+    <string name="navigation_drawer_open"></string>
+    <string name="navigation_drawer_close"></string>
 </resources>

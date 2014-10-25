@@ -6,11 +6,11 @@
         <ListPreference
             android:key="university"
             android:entries="@array/university"
+            android:defaultValue="8"
             android:entryValues="@array/university_values"
             android:title="@string/pref_univer"/>
-        <EditTextPreference
-            android:title="GROUP/UNIVERSITY choice"
-            android:summary="summary"
+        <ListPreference
+            android:title="@string/pref_group"
             android:key="group"/>
         </PreferenceCategory>
 

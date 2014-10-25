@@ -385,19 +385,6 @@ public class main extends ActionBarActivity
             new TimetableRefresh().execute();
         }
 
-        private String deleteTag(String line){
-            if ((line.indexOf('>') - line.indexOf('<')) > 0) {
-                int start_index = line.indexOf('<');
-                int finish_index = line.indexOf('>') + 1;
-
-                line = line.replace(line.substring(start_index, finish_index), "");
-
-                return deleteTag(line);
-            } else {
-                return line;
-            }
-        }
-
         // Glob var for lesson save/work
         String day = "e";
         String number = "e";
@@ -591,6 +578,18 @@ public class main extends ActionBarActivity
             lesson.setGroup2Week1(g2w1);
             lesson.setGroup2Week2(g2w2);
             return lesson;
+        }
+    }
+    public String deleteTag(String line){
+        if ((line.indexOf('>') - line.indexOf('<')) > 0) {
+            int start_index = line.indexOf('<');
+            int finish_index = line.indexOf('>') + 1;
+
+            line = line.replace(line.substring(start_index, finish_index), "");
+
+            return deleteTag(line);
+        } else {
+            return line;
         }
     }
 }

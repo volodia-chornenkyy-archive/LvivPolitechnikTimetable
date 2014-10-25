@@ -18,6 +18,7 @@
     <string name="pref_update_setting">Оновлення</string>
     <string name="pref_update_on_start">Оновляти при запуску програми</string>
     <string name="pref_univer">Університет</string>
+    <string name="pref_group">Група</string>
     <string-array name="university">
         <item>ІАРХ</item>
         <item>ІБІД</item>

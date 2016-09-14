@@ -13,7 +13,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -21,24 +20,20 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 
 public class main extends ActionBarActivity
@@ -320,55 +315,72 @@ public class main extends ActionBarActivity
         @Override
         protected ArrayList<Lesson> doInBackground(Void... params) {
             //Get source of html-page from its source code
-            HttpClient client = new DefaultHttpClient();
-            HttpGet httpGet = new HttpGet(url_politeh);
+            OkHttpClient httpClient = new OkHttpClient();
+
+            Request request = new Request.Builder()
+                    .url(url_politeh)
+                    .build();
+
+            InputStream pageStream = null;
             try {
-                // Get source of page from line to line
-                HttpResponse response = client.execute(httpGet);
-                HttpEntity entity = response.getEntity();
-                InputStream inputStream = entity.getContent();
+                Response response = httpClient.newCall(request).execute();
+                pageStream = response.body().byteStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
                 // Variables
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8);
-                StringBuilder stringBuilder = new StringBuilder();
-                String line;
-                Boolean lesson_read_flag = false;
-                Boolean group_read_flag = false;
-                Lesson lesson = new Lesson();
-                ArrayList<Lesson> list = new ArrayList<Lesson>();
+                if (pageStream != null) {
+                    BufferedReader bufferedReader = null;
+                    try {
+                        bufferedReader = new BufferedReader(new InputStreamReader(pageStream, "UTF-8"), 8);
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line;
+                    Boolean lesson_read_flag = false;
+                    Boolean group_read_flag = false;
+                    Lesson lesson = new Lesson();
+                    ArrayList<Lesson> list = new ArrayList<Lesson>();
 
-                // Work with source
-                while ((line = bufferedReader.readLine()) != null) {
-                    // Get groups
-                    if (line.contains("<option value")&&!line.contains("День</th><th class=\"zagol2\">Пара")){
+                    // Work with source
+                    if (bufferedReader != null) {
+                        try {
+                            while ((line = bufferedReader.readLine()) != null) {
+                                // Get groups
+                                if (line.contains("<option value") && !line.contains("День</th><th class=\"zagol2\">Пара")) {
 
+                                }
+                                // Get lessons
+                                if ((!lesson_read_flag) && (line.contains("<td align=\"center\" valign=\"middle\" rowspan=\"4\" class=\"leftcell\">Пн"))) {
+                                    lesson_read_flag = true;
+                                } else if ((lesson_read_flag) && (line.equals("<div style=\"padding-top:20px;\"> Останнє оновлення: 17 вересня 2014 р. о 18:35</div></div>"))) {
+                                    lesson_read_flag = false;
+                                }
+                                if (lesson_read_flag) {
+                                    String temp = line;
+                                    if (line.contains("</table")) {
+                                        line = line.substring(0, line.indexOf("</table>") + 8);
+                                        stringBuilder.append(line).append('\n');
+                                        lesson = getLessons(stringBuilder);
+                                        list.add(lesson);
+                                        stringBuilder.delete(0, stringBuilder.length());
+                                        line = temp.substring(temp.indexOf("</table>") + 8, temp.length());
+                                        stringBuilder.append(line).append('\n');
+                                    } else {
+                                        stringBuilder.append(line).append('\n');
+                                    }
+                                }
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
-                    // Get lessons
-                    if ((!lesson_read_flag) && (line.contains("<td align=\"center\" valign=\"middle\" rowspan=\"4\" class=\"leftcell\">Пн"))) {
-                        lesson_read_flag = true;
-                    } else if ((lesson_read_flag) && (line.equals("<div style=\"padding-top:20px;\"> Останнє оновлення: 17 вересня 2014 р. о 18:35</div></div>"))) {
-                        lesson_read_flag = false;
-                    }
-                    if (lesson_read_flag) {
-                        String temp = line;
-                        if (line.contains("</table")){
-                            line = line.substring(0,line.indexOf("</table>")+8);
-                            stringBuilder.append(line).append('\n');
-                            lesson = getLessons(stringBuilder);
-                            list.add(lesson);
-                            stringBuilder.delete(0, stringBuilder.length());
-                            line = temp.substring(temp.indexOf("</table>")+8, temp.length());
-                            stringBuilder.append(line).append('\n');
-                        } else {
-							stringBuilder.append(line).append('\n');
-						}
-                    }
+                    return list;
+                } else {
+                    return null;
                 }
-                inputStream.close();
-                return list;
-            } catch (IOException e) {
-                return null;
-            }
         }
 
         @Override

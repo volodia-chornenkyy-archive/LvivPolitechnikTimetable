@@ -4,19 +4,15 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.PreferenceActivity;
-import android.util.Log;
 import android.widget.Toast;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 
 /**
  * Created by Volodia on 24.10.2014.
@@ -35,15 +31,14 @@ public class UserSettings extends PreferenceActivity {
                 // get university
                 ListPreference listUniver = (ListPreference) findPreference("university");
 
-                HttpClient client = new DefaultHttpClient();
-                HttpGet httpGet = new HttpGet("http://lp.edu.ua/node/40?inst="+listUniver.getValue()
-                    +"&group=&semestr=0&semest_part=1");
-                // Get source of page from line to line
-                HttpResponse response = null;
+                OkHttpClient httpClient = new OkHttpClient();
+                Request request = new Request.Builder()
+                        .url("http://lp.edu.ua/node/40?inst="+listUniver.getValue()
+                                +"&group=&semestr=0&semest_part=1")
+                        .build();
+
                 try {
-                    response = client.execute(httpGet);
-                    HttpEntity entity = response.getEntity();
-                    InputStream inputStream = entity.getContent();
+                    InputStream inputStream = httpClient.newCall(request).execute().body().byteStream();
 
                     // Variables
                     BufferedReader bufferedReader = new BufferedReader(

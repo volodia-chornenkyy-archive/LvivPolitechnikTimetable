@@ -38,12 +38,12 @@ import okhttp3.Response;
 
 public class main extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
-    private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
-    String url_politeh = "http://lp.edu.ua/node/40?inst=8&group=7009&semestr=0&semest_part=1";
     public static final String[] UNIVERSITY = new String[]{
-        "ІАРХ*1", "ІБІД*2", "ІГДГ*3", "ІГСН*4", "ІЕПТ*19", "ІЕСК*6", "ІІМТ*7", "ІКНІ*8",
+            "ІАРХ*1", "ІБІД*2", "ІГДГ*3", "ІГСН*4", "ІЕПТ*19", "ІЕСК*6", "ІІМТ*7", "ІКНІ*8",
             "ІКТА*9", "ІМФН*10", "ІНЕМ*5", "ІНПП*18", "ІТРЕ*11", "ІХХТ*12"
     };
+    private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
+    String url_politeh = "http://lp.edu.ua/node/40?inst=8&group=7009&semestr=0&semest_part=1";
     private int current_day;
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -86,7 +86,7 @@ public class main extends ActionBarActivity
         });
 
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-        if (settings.getBoolean("update",true)) {
+        if (settings.getBoolean("update", true)) {
             new TimetableRenew().execute();
         }
     }
@@ -128,45 +128,6 @@ public class main extends ActionBarActivity
         actionBar.setDisplayShowTitleEnabled(true);
         actionBar.setTitle(mTitle);
     }
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_my, container, false);
-            return rootView;
-        }
-
-        @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            ((main) activity).onSectionAttached(
-                    getArguments().getInt(ARG_SECTION_NUMBER));
-        }
-    }
 
     // WTF????
     @Override
@@ -192,13 +153,28 @@ public class main extends ActionBarActivity
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.action_settings:
-                Intent i = new Intent(getApplicationContext(),UserSettings.class);
-                startActivityForResult(i,1);
+                Intent i = new Intent(getApplicationContext(), UserSettings.class);
+                startActivityForResult(i, 1);
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void addToDatabase(ArrayList<Lesson> lesson) {
+        DBAdapter dbAdapter = new DBAdapter(this);
+        dbAdapter.clear();
+        lesson.trimToSize();
+        for (int i = 0; i < lesson.size() - 1; i++) {
+            if (!lesson.get(i).getGroup1Week1().equals("e")
+                    && !lesson.get(i).getGroup1Week2().equals("e")
+                    && !lesson.get(i).getGroup2Week1().equals("e")
+                    && !lesson.get(i).getGroup2Week2().equals("e"))
+                dbAdapter.addLesson(lesson.get(i));
+        }
+        dbAdapter.close();
+        Toast.makeText(main.this, "Work with DB complete", Toast.LENGTH_SHORT).show();
     }
 
     /*@Override
@@ -220,43 +196,81 @@ public class main extends ActionBarActivity
     }
 */
 
-    public void addToDatabase(ArrayList<Lesson> lesson) {
-        DBAdapter dbAdapter = new DBAdapter(this);
-        dbAdapter.clear();
-        lesson.trimToSize();
-        for (int i = 0; i<lesson.size()-1;i++) {
-            if (!lesson.get(i).getGroup1Week1().equals("e")
-                    && !lesson.get(i).getGroup1Week2().equals("e")
-                    && !lesson.get(i).getGroup2Week1().equals("e")
-                    && !lesson.get(i).getGroup2Week2().equals("e"))
-            dbAdapter.addLesson(lesson.get(i));
+    public String deleteTag(String line) {
+        if ((line.indexOf('>') - line.indexOf('<')) > 0) {
+            int start_index = line.indexOf('<');
+            int finish_index = line.indexOf('>') + 1;
+
+            line = line.replace(line.substring(start_index, finish_index), "");
+
+            return deleteTag(line);
+        } else {
+            return line;
         }
-        dbAdapter.close();
-        Toast.makeText(main.this, "Work with DB complete", Toast.LENGTH_SHORT).show();
     }
 
-    class TimetableRefresh extends AsyncTask<Void, Integer, Void>{
+    /**
+     * A placeholder fragment containing a simple view.
+     */
+    public static class PlaceholderFragment extends Fragment {
+        /**
+         * The fragment argument representing the section number for this
+         * fragment.
+         */
+        private static final String ARG_SECTION_NUMBER = "section_number";
+
+        public PlaceholderFragment() {
+        }
+
+        /**
+         * Returns a new instance of this fragment for the given section
+         * number.
+         */
+        public static PlaceholderFragment newInstance(int sectionNumber) {
+            PlaceholderFragment fragment = new PlaceholderFragment();
+            Bundle args = new Bundle();
+            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+            fragment.setArguments(args);
+            return fragment;
+        }
+
         @Override
-        protected Void doInBackground(Void... params){
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            View rootView = inflater.inflate(R.layout.fragment_my, container, false);
+            return rootView;
+        }
+
+        @Override
+        public void onAttach(Activity activity) {
+            super.onAttach(activity);
+            ((main) activity).onSectionAttached(
+                    getArguments().getInt(ARG_SECTION_NUMBER));
+        }
+    }
+
+    class TimetableRefresh extends AsyncTask<Void, Integer, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
             return null;
         }
 
         @Override
-        protected void onProgressUpdate(Integer... values ){
+        protected void onProgressUpdate(Integer... values) {
 
         }
 
         @Override
-        protected void onPostExecute(Void p){
+        protected void onPostExecute(Void p) {
             readFromDatabase();
         }
 
-        private void readFromDatabase(){
+        private void readFromDatabase() {
             DBAdapter dbAdapter = new DBAdapter(main.this);
             List<Lesson> lessonList = dbAdapter.getAllContacts();
             int i = 0;
             String day_name = "";
-            switch (current_day){
+            switch (current_day) {
                 case 1:
                     day_name = "Пн";
                     break;
@@ -278,30 +292,30 @@ public class main extends ActionBarActivity
                     if (cn.getGroup1Week1().equals("")) {
                         continue;
                     }
-                    switch (i){
+                    switch (i) {
                         case 0:
-                            TextView textView1 = (TextView)findViewById(R.id.text_title1);
+                            TextView textView1 = (TextView) findViewById(R.id.text_title1);
                             textView1.setText(cn.getGroup1Week1());
-                            TextView textNumber1 = (TextView)findViewById(R.id.text_number1);
-                            textNumber1.setText(cn.getLessonNumber()+" ");
+                            TextView textNumber1 = (TextView) findViewById(R.id.text_number1);
+                            textNumber1.setText(cn.getLessonNumber() + " ");
                             break;
                         case 1:
-                            TextView textView2 = (TextView)findViewById(R.id.text_title2);
+                            TextView textView2 = (TextView) findViewById(R.id.text_title2);
                             textView2.setText(cn.getGroup1Week1());
-                            TextView textNumber2 = (TextView)findViewById(R.id.text_number2);
-                            textNumber2.setText(cn.getLessonNumber()+" ");
+                            TextView textNumber2 = (TextView) findViewById(R.id.text_number2);
+                            textNumber2.setText(cn.getLessonNumber() + " ");
                             break;
                         case 2:
-                            TextView textView3 = (TextView)findViewById(R.id.text_title3);
+                            TextView textView3 = (TextView) findViewById(R.id.text_title3);
                             textView3.setText(cn.getGroup1Week1());
-                            TextView textNumber3 = (TextView)findViewById(R.id.text_number3);
-                            textNumber3.setText(cn.getLessonNumber()+" ");
+                            TextView textNumber3 = (TextView) findViewById(R.id.text_number3);
+                            textNumber3.setText(cn.getLessonNumber() + " ");
                             break;
                         case 3:
-                            TextView textView4 = (TextView)findViewById(R.id.text_title4);
+                            TextView textView4 = (TextView) findViewById(R.id.text_title4);
                             textView4.setText(cn.getGroup1Week1());
-                            TextView textNumber4 = (TextView)findViewById(R.id.text_number4);
-                            textNumber4.setText(cn.getLessonNumber()+" ");
+                            TextView textNumber4 = (TextView) findViewById(R.id.text_number4);
+                            textNumber4.setText(cn.getLessonNumber() + " ");
                             break;
                     }
                     i++;
@@ -312,6 +326,10 @@ public class main extends ActionBarActivity
 
     /*Class for working with source of html page with timetable*/
     class TimetableRenew extends AsyncTask<Void, Integer, ArrayList<Lesson>> {
+        // Glob var for lesson save/work
+        String day = "e";
+        String number = "e";
+
         @Override
         protected ArrayList<Lesson> doInBackground(Void... params) {
             //Get source of html-page from its source code
@@ -329,58 +347,58 @@ public class main extends ActionBarActivity
                 e.printStackTrace();
             }
 
-                // Variables
-                if (pageStream != null) {
-                    BufferedReader bufferedReader = null;
+            // Variables
+            if (pageStream != null) {
+                BufferedReader bufferedReader = null;
+                try {
+                    bufferedReader = new BufferedReader(new InputStreamReader(pageStream, "UTF-8"), 8);
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                StringBuilder stringBuilder = new StringBuilder();
+                String line;
+                Boolean lesson_read_flag = false;
+                Boolean group_read_flag = false;
+                Lesson lesson = new Lesson();
+                ArrayList<Lesson> list = new ArrayList<Lesson>();
+
+                // Work with source
+                if (bufferedReader != null) {
                     try {
-                        bufferedReader = new BufferedReader(new InputStreamReader(pageStream, "UTF-8"), 8);
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String line;
-                    Boolean lesson_read_flag = false;
-                    Boolean group_read_flag = false;
-                    Lesson lesson = new Lesson();
-                    ArrayList<Lesson> list = new ArrayList<Lesson>();
+                        while ((line = bufferedReader.readLine()) != null) {
+                            // Get groups
+                            if (line.contains("<option value") && !line.contains("День</th><th class=\"zagol2\">Пара")) {
 
-                    // Work with source
-                    if (bufferedReader != null) {
-                        try {
-                            while ((line = bufferedReader.readLine()) != null) {
-                                // Get groups
-                                if (line.contains("<option value") && !line.contains("День</th><th class=\"zagol2\">Пара")) {
-
-                                }
-                                // Get lessons
-                                if ((!lesson_read_flag) && (line.contains("<td align=\"center\" valign=\"middle\" rowspan=\"4\" class=\"leftcell\">Пн"))) {
-                                    lesson_read_flag = true;
-                                } else if ((lesson_read_flag) && (line.equals("<div style=\"padding-top:20px;\"> Останнє оновлення: 17 вересня 2014 р. о 18:35</div></div>"))) {
-                                    lesson_read_flag = false;
-                                }
-                                if (lesson_read_flag) {
-                                    String temp = line;
-                                    if (line.contains("</table")) {
-                                        line = line.substring(0, line.indexOf("</table>") + 8);
-                                        stringBuilder.append(line).append('\n');
-                                        lesson = getLessons(stringBuilder);
-                                        list.add(lesson);
-                                        stringBuilder.delete(0, stringBuilder.length());
-                                        line = temp.substring(temp.indexOf("</table>") + 8, temp.length());
-                                        stringBuilder.append(line).append('\n');
-                                    } else {
-                                        stringBuilder.append(line).append('\n');
-                                    }
+                            }
+                            // Get lessons
+                            if ((!lesson_read_flag) && (line.contains("<td align=\"center\" valign=\"middle\" rowspan=\"4\" class=\"leftcell\">Пн"))) {
+                                lesson_read_flag = true;
+                            } else if ((lesson_read_flag) && (line.equals("<div style=\"padding-top:20px;\"> Останнє оновлення: 17 вересня 2014 р. о 18:35</div></div>"))) {
+                                lesson_read_flag = false;
+                            }
+                            if (lesson_read_flag) {
+                                String temp = line;
+                                if (line.contains("</table")) {
+                                    line = line.substring(0, line.indexOf("</table>") + 8);
+                                    stringBuilder.append(line).append('\n');
+                                    lesson = getLessons(stringBuilder);
+                                    list.add(lesson);
+                                    stringBuilder.delete(0, stringBuilder.length());
+                                    line = temp.substring(temp.indexOf("</table>") + 8, temp.length());
+                                    stringBuilder.append(line).append('\n');
+                                } else {
+                                    stringBuilder.append(line).append('\n');
                                 }
                             }
-                        } catch (IOException e) {
-                            e.printStackTrace();
                         }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                    return list;
-                } else {
-                    return null;
                 }
+                return list;
+            } else {
+                return null;
+            }
         }
 
         @Override
@@ -396,10 +414,6 @@ public class main extends ActionBarActivity
 
             new TimetableRefresh().execute();
         }
-
-        // Glob var for lesson save/work
-        String day = "e";
-        String number = "e";
 
         private Lesson getLessons(StringBuilder stringBuilder) {
             String[] lines = stringBuilder.toString().split("\\n");
@@ -439,7 +453,7 @@ public class main extends ActionBarActivity
                     break;
                 }
                 if (table_start) {
-                    if (s.indexOf("<table")>0){
+                    if (s.indexOf("<table") > 0) {
                         s = s.substring(s.indexOf("<table"));
                     }
                     if (s.contains("<td") || s.contains("<div")) {
@@ -590,18 +604,6 @@ public class main extends ActionBarActivity
             lesson.setGroup2Week1(g2w1);
             lesson.setGroup2Week2(g2w2);
             return lesson;
-        }
-    }
-    public String deleteTag(String line){
-        if ((line.indexOf('>') - line.indexOf('<')) > 0) {
-            int start_index = line.indexOf('<');
-            int finish_index = line.indexOf('>') + 1;
-
-            line = line.replace(line.substring(start_index, finish_index), "");
-
-            return deleteTag(line);
-        } else {
-            return line;
         }
     }
 }

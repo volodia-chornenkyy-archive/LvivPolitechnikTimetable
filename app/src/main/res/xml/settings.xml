@@ -1,25 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory
-        android:title="@string/pref_user_setting">
+    <PreferenceCategory android:title="@string/pref_user_setting">
         <ListPreference
-            android:key="university"
-            android:entries="@array/university"
             android:defaultValue="8"
+            android:entries="@array/university"
             android:entryValues="@array/university_values"
-            android:title="@string/pref_univer"/>
+            android:key="university"
+            android:title="@string/pref_univer" />
         <ListPreference
-            android:title="@string/pref_group"
-            android:key="group"/>
-        </PreferenceCategory>
+            android:key="group"
+            android:title="@string/pref_group" />
+    </PreferenceCategory>
 
-    <PreferenceCategory
-        android:title="@string/pref_update_setting">
+    <PreferenceCategory android:title="@string/pref_update_setting">
         <CheckBoxPreference
+            android:id="@+id/pref_update"
             android:defaultValue="true"
             android:key="update"
-            android:id="@+id/pref_update"
-            android:title="@string/pref_update_on_start"/>
-        </PreferenceCategory>
+            android:title="@string/pref_update_on_start" />
+    </PreferenceCategory>
 </PreferenceScreen>

@@ -8,11 +8,11 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.temnoi.lvivpolitechniktimetable.R;
 import com.temnoi.lvivpolitechniktimetable.data.Callback;
 import com.temnoi.lvivpolitechniktimetable.data.GroupsLoader;
+import com.temnoi.lvivpolitechniktimetable.data.TimetableLoader;
 import com.temnoi.lvivpolitechniktimetable.model.Group;
 import com.temnoi.lvivpolitechniktimetable.ui.BaseFragment;
 
@@ -97,8 +97,18 @@ public class GroupsFragment extends BaseFragment {
                 Group selectedItem = groupsAdapter.getSelectedItem();
 
                 if (selectedItem != null) {
-                    // go to main screen
-                    Toast.makeText(getContext(), "" + selectedItem.getShortName(), Toast.LENGTH_SHORT).show();
+
+                    new TimetableLoader(getArguments().getString(ARG_UNIVERSITY_ID), selectedItem.getId()).load(new Callback<List<Group>>() {
+                        @Override
+                        public void onSuccess(List<Group> data) {
+
+                        }
+
+                        @Override
+                        public void onFailure(Throwable t) {
+
+                        }
+                    });
                 } else {
                     // TODO: 9/15/16 show message to select university
                 }

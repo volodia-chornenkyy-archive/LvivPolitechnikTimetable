@@ -1,4 +1,4 @@
-package com.temnoi.lvivpolitechniktimetable.ui.setup;
+package com.temnoi.lvivpolitechniktimetable.ui.setup.university;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -13,6 +13,8 @@ import com.temnoi.lvivpolitechniktimetable.Callback;
 import com.temnoi.lvivpolitechniktimetable.R;
 import com.temnoi.lvivpolitechniktimetable.UniversitiesLoader;
 import com.temnoi.lvivpolitechniktimetable.model.University;
+import com.temnoi.lvivpolitechniktimetable.ui.BaseFragment;
+import com.temnoi.lvivpolitechniktimetable.ui.OnItemClickListener;
 
 import java.util.List;
 

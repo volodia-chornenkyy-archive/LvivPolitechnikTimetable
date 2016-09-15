@@ -1,4 +1,4 @@
-package com.temnoi.lvivpolitechniktimetable.ui.setup;
+package com.temnoi.lvivpolitechniktimetable.ui;
 
 import android.view.View;
 
@@ -7,6 +7,6 @@ import android.view.View;
  * @since 9/15/16
  */
 
-interface OnItemClickListener<T> {
+public interface OnItemClickListener<T> {
     void onClick(View view, T data);
 }

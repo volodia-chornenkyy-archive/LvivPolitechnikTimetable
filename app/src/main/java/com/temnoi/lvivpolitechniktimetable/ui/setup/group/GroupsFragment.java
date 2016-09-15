@@ -1,4 +1,4 @@
-package com.temnoi.lvivpolitechniktimetable.ui.setup;
+package com.temnoi.lvivpolitechniktimetable.ui.setup.group;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;

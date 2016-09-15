@@ -1,4 +1,4 @@
-package com.temnoi.lvivpolitechniktimetable.ui.setup;
+package com.temnoi.lvivpolitechniktimetable.ui.setup.university;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import com.temnoi.lvivpolitechniktimetable.R;
 import com.temnoi.lvivpolitechniktimetable.model.University;
+import com.temnoi.lvivpolitechniktimetable.ui.OnItemClickListener;
 
 import java.util.ArrayList;
 import java.util.List;

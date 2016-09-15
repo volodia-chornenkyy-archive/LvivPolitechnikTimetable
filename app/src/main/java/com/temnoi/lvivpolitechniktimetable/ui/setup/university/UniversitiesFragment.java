@@ -57,7 +57,7 @@ public class UniversitiesFragment extends BaseFragment {
 
     public void goToGroups(University selectedItem) {
         getActivity().getSupportFragmentManager().beginTransaction()
-                .add(
+                .replace(
                         R.id.setup_activity_container,
                         GroupsFragment.newInstance(selectedItem.getId()),
                         GroupsFragment.TAG)

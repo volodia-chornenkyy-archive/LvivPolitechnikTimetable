@@ -56,4 +56,5 @@
 
     <!--New strings-->
     <string name="setup.university.title">Setup - University</string>
+    <string name="setup.group.title">Setup - Group</string>
 </resources>

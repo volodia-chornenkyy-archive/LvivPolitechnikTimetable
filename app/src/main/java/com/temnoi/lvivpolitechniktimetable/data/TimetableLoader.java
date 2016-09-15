@@ -1,6 +1,8 @@
 package com.temnoi.lvivpolitechniktimetable.data;
 
 import android.os.AsyncTask;
+import android.text.TextUtils;
+import android.util.Log;
 
 import com.temnoi.lvivpolitechniktimetable.model.Group;
 
@@ -42,7 +44,39 @@ public class TimetableLoader {
                     Elements elements = timetableContent.select("tr").after("<th");
                     if (elements.size() > 1) {
                         for (Element element : elements) {
+                            Elements tds = element.select("td");
+                            for (Element td : tds) {
+                                if (td.select("td.leftcell").size() == 1) {
+                                    // day or number
 
+                                    String tagContent = td.html();
+                                    if (!TextUtils.isDigitsOnly(tagContent)) {
+                                        // day
+                                        Log.e("day", tagContent);
+                                    } else {
+                                        // number
+                                        Log.d("num", tagContent);
+                                    }
+                                } else if (td.select("td.maincell").size() == 1) {
+                                    // lesson
+
+                                    Elements trs = td.select("tr");
+                                    if (trs.select("td").size() == 1) {
+                                        Log.v("les", trs.select("div").html());
+                                    } else {
+                                       for (Element innerTr : trs) {
+                                           Elements innerTd = innerTr.select("td");
+                                           // TODO: 16.09.2016  
+                                           if (innerTd.size() == 1 && TextUtils.isEmpty(innerTd.html())) {
+                                               Log.v("les", "-");
+                                           } else {
+                                               Log.v("les", innerTd.select("div").html());
+                                           }
+                                       }
+                                    }
+                                }
+                            }
+//                            System.out.println(element.select("td.leftcell[rowspan]"));
                         }
                     } else {
                         // TODO: 9/15/16 do somethig when timetable not exist

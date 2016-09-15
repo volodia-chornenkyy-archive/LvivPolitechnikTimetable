@@ -8,12 +8,9 @@ import android.widget.TextView;
 
 import com.temnoi.lvivpolitechniktimetable.R;
 import com.temnoi.lvivpolitechniktimetable.model.University;
-import com.temnoi.lvivpolitechniktimetable.ui.OnItemClickListener;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import lombok.Setter;
 
 /**
  * @author chornenkyy@gmail.com
@@ -24,8 +21,7 @@ public class UniversitiesAdapter extends RecyclerView.Adapter<UniversitiesAdapte
 
     private List<University> items = new ArrayList<>();
 
-    @Setter
-    private OnItemClickListener<University> viewOnClickListener;
+    private int selectedItemPos = -1;
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -36,6 +32,12 @@ public class UniversitiesAdapter extends RecyclerView.Adapter<UniversitiesAdapte
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         University university = items.get(position);
+
+        if (selectedItemPos == position) {
+            // TODO: 9/15/16 make background another color
+        } else {
+            // TODO: 9/15/16 make background default color
+        }
 
         holder.tvName.setText(university.getShortName());
     }
@@ -51,12 +53,23 @@ public class UniversitiesAdapter extends RecyclerView.Adapter<UniversitiesAdapte
         notifyDataSetChanged(); // TODO: 15.09.2016 probably better to use DiffUtil
     }
 
+    public University getSelectedItem() {
+        if (selectedItemPos >= 0) {
+            return items.get(selectedItemPos);
+        } else {
+            return null;
+        }
+    }
+
     class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
+        View rootItemView;
         TextView tvName;
 
         ViewHolder(View itemView) {
             super(itemView);
+            rootItemView = itemView;
+
             itemView.setOnClickListener(this);
 
             tvName = (TextView) itemView.findViewById(R.id.tv_university_name);
@@ -64,9 +77,7 @@ public class UniversitiesAdapter extends RecyclerView.Adapter<UniversitiesAdapte
 
         @Override
         public void onClick(View view) {
-            if (viewOnClickListener != null) {
-                viewOnClickListener.onClick(view, items.get(getAdapterPosition()));
-            }
+            selectedItemPos = getAdapterPosition();
         }
     }
 }

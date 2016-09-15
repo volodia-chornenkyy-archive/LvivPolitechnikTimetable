@@ -9,9 +9,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.temnoi.lvivpolitechniktimetable.Callback;
 import com.temnoi.lvivpolitechniktimetable.R;
-import com.temnoi.lvivpolitechniktimetable.UniversitiesLoader;
+import com.temnoi.lvivpolitechniktimetable.data.Callback;
+import com.temnoi.lvivpolitechniktimetable.data.UniversitiesLoader;
 import com.temnoi.lvivpolitechniktimetable.model.University;
 import com.temnoi.lvivpolitechniktimetable.ui.BaseFragment;
 import com.temnoi.lvivpolitechniktimetable.ui.setup.group.GroupsFragment;

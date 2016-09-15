@@ -10,9 +10,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.temnoi.lvivpolitechniktimetable.Callback;
-import com.temnoi.lvivpolitechniktimetable.GroupsLoader;
 import com.temnoi.lvivpolitechniktimetable.R;
+import com.temnoi.lvivpolitechniktimetable.data.Callback;
+import com.temnoi.lvivpolitechniktimetable.data.GroupsLoader;
 import com.temnoi.lvivpolitechniktimetable.model.Group;
 import com.temnoi.lvivpolitechniktimetable.ui.BaseFragment;
 

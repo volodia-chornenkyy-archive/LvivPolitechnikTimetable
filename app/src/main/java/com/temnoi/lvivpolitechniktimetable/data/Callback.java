@@ -1,4 +1,4 @@
-package com.temnoi.lvivpolitechniktimetable;
+package com.temnoi.lvivpolitechniktimetable.data;
 
 /**
  * @author chornenkyy@gmail.com

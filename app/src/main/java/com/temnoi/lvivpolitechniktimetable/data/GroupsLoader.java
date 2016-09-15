@@ -1,4 +1,4 @@
-package com.temnoi.lvivpolitechniktimetable;
+package com.temnoi.lvivpolitechniktimetable.data;
 
 import android.os.AsyncTask;
 import android.text.TextUtils;

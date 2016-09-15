@@ -53,4 +53,7 @@
     </string-array>
     <string name="title_activity_setup">Setup</string>
     <string name="section_format">Hello World from section: %1$d</string>
+
+    <!--New strings-->
+    <string name="setup.university.title">Setup - University</string>
 </resources>

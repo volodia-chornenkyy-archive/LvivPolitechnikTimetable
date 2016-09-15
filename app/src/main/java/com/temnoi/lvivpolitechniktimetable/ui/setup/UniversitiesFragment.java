@@ -2,7 +2,6 @@ package com.temnoi.lvivpolitechniktimetable.ui.setup;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -17,7 +16,9 @@ import com.temnoi.lvivpolitechniktimetable.model.University;
 
 import java.util.List;
 
-public class UniversitiesFragment extends Fragment {
+public class UniversitiesFragment extends BaseFragment {
+
+    public static final String TAG = UniversitiesFragment.class.getSimpleName();
 
     private UniversitiesAdapter universitiesAdapter;
     private UniversitiesLoader universitiesLoader;
@@ -34,11 +35,6 @@ public class UniversitiesFragment extends Fragment {
         setupUi(rootView);
 
         return rootView;
-    }
-
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
     }
 
     @Override
@@ -73,6 +69,8 @@ public class UniversitiesFragment extends Fragment {
     }
 
     private void setupUi(View rootView) {
+        updateToolbarTitle(R.string.setup_university_title);
+
         RecyclerView rvUniversities = (RecyclerView) rootView.findViewById(R.id.rv_universities);
         universitiesAdapter = new UniversitiesAdapter();
         universitiesAdapter.setViewOnClickListener(new OnItemClickListener<University>() {

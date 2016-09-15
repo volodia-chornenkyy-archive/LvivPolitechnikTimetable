@@ -12,6 +12,8 @@ import com.temnoi.lvivpolitechniktimetable.model.University;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Setter;
+
 /**
  * @author chornenkyy@gmail.com
  * @since 14.09.2016
@@ -20,6 +22,9 @@ import java.util.List;
 public class UniversitiesAdapter extends RecyclerView.Adapter<UniversitiesAdapter.ViewHolder> {
 
     private List<University> items = new ArrayList<>();
+
+    @Setter
+    private OnItemClickListener<University> viewOnClickListener;
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -45,14 +50,22 @@ public class UniversitiesAdapter extends RecyclerView.Adapter<UniversitiesAdapte
         notifyDataSetChanged(); // TODO: 15.09.2016 probably better to use DiffUtil
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         TextView tvName;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             super(itemView);
+            itemView.setOnClickListener(this);
 
             tvName = (TextView) itemView.findViewById(R.id.tv_university_name);
+        }
+
+        @Override
+        public void onClick(View view) {
+            if (viewOnClickListener != null) {
+                viewOnClickListener.onClick(view, items.get(getAdapterPosition()));
+            }
         }
     }
 }

@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.temnoi.lvivpolitechniktimetable.Callback;
 import com.temnoi.lvivpolitechniktimetable.R;
@@ -74,6 +75,12 @@ public class UniversitiesFragment extends Fragment {
     private void setupUi(View rootView) {
         RecyclerView rvUniversities = (RecyclerView) rootView.findViewById(R.id.rv_universities);
         universitiesAdapter = new UniversitiesAdapter();
+        universitiesAdapter.setViewOnClickListener(new OnItemClickListener<University>() {
+            @Override
+            public void onClick(View view, University data) {
+                Toast.makeText(view.getContext(), data.toString(), Toast.LENGTH_SHORT).show();
+            }
+        });
         rvUniversities.setLayoutManager(new LinearLayoutManager(getContext()));
         rvUniversities.setAdapter(universitiesAdapter);
     }
